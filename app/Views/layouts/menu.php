@@ -12,6 +12,18 @@
         </a><br>
     <?php endif; ?>
 
+    <?php 
+$role = session()->get('role'); 
+?>
+
+   <a href="<?= base_url('/buku') ?>"> Buku </a><br>
+
+<?php if (in_array($role, ['admin', 'petugas','anggota'])) : ?>
+    <a href="<?= base_url('/peminjaman') ?>">
+         Peminjaman
+    </a><br>
+<?php endif; ?>
+
         <?php $idu = session('id'); ?>
     <a href="<?= base_url('users/edit/' . $idu) ?>">
         Setting
