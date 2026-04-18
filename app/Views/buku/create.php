@@ -1,66 +1,118 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
-<h3>Tambah Buku</h3>
 
-<form method="post" action="<?= base_url('buku/store') ?>" enctype="multipart/form-data">
+<head>
+    <meta charset="UTF-8">
+    <title>Tambah Buku</title>
 
-    Judul:<br>
-    <input type="text" name="judul"><br><br>
+    <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
+</head>
 
-    ISBN:<br>
-    <input type="text" name="isbn"><br><br>
+<body>
 
-    Kategori:<br>
-    <select name="id_kategori">
-        <option value="">Pilih</option>
-        <?php foreach ($kategori as $k): ?>
-            <option value="<?= $k['id_kategori'] ?>"><?= $k['nama_kategori'] ?></option>
-        <?php endforeach; ?>
-    </select><br><br>
+    <div>
+        <h4>Form Tambah Buku</h4>
 
-    Penulis:<br>
-    <select name="id_penulis">
-        <option value="">Pilih</option>
-        <?php foreach ($penulis as $p): ?>
-            <option value="<?= $p['id_penulis'] ?>"><?= $p['nama_penulis'] ?></option>
-        <?php endforeach; ?>
-    </select><br><br>
+        <form action="<?= base_url('buku/store') ?>" method="post" enctype="multipart/form-data">
 
-    Penerbit:<br>
-    <select name="id_penerbit">
-        <option value="">Pilih</option>
-        <?php foreach ($penerbit as $p): ?>
-            <option value="<?= $p['id_penerbit'] ?>"><?= $p['nama_penerbit'] ?></option>
-        <?php endforeach; ?>
-    </select><br><br>
+            <!-- JUDUL (MULTI INPUT) -->
+            <div>
+                <label>Judul Buku</label><br>
+                <input type="text" name="judul" required>
+            </div>
 
-    Rak:<br>
-    <select name="id_rak">
-        <option value="">Pilih</option>
-        <?php foreach ($rak as $r): ?>
-            <option value="<?= $r['id_rak'] ?>">
-                <?= $r['nama_rak'] ?> - <?= $r['lokasi'] ?>
-            </option>
-        <?php endforeach; ?>
-    </select><br><br>
+            <div>
+                <label>ISBN</label><br>
+                <input type="text" name="isbn">
+            </div>
 
-    Tahun Terbit:<br>
-    <input type="number" name="tahun_terbit"><br><br>
+            <!-- KATEGORI -->
+            <div>
+                <label>Kategori</label><br>
 
-    Jumlah:<br>
-    <input type="number" name="jumlah"><br><br>
+                <select name="id_kategori">
+                    <option value="">-- Pilih --</option>
+                    <?php foreach ($kategori as $k): ?>
+                        <option value="<?= $k['id_kategori'] ?>">
+                            <?= $k['nama_kategori'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
-    Tersedia:<br>
-    <input type="number" name="tersedia"><br><br>
+                <br>
+                <input type="text" name="kategori_baru" placeholder="Atau tambah kategori baru">
+            </div>
 
-    Deskripsi:<br>
-    <textarea name="deskripsi"></textarea><br><br>
+            <!-- PENULIS -->
+            <div>
+                <label>Penulis</label><br>
 
-    Cover / file :<br>
-    <input type="file" name="cover"><br><br>
+                <select name="id_penulis">
+                    <option value="">-- Pilih --</option>
+                    <?php foreach ($penulis as $p): ?>
+                        <option value="<?= $p['id_penulis'] ?>">
+                            <?= $p['nama_penulis'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
-    <button type="submit">Simpan</button>
-    <a href="<?= base_url('buku') ?>">Kembali</a>
+                <br>
+                <input type="text" name="penulis_baru" placeholder="Atau tambah penulis baru">
+            </div>
 
-</form>
-<?= $this->endSection() ?>
+            <!-- PENERBIT -->
+            <div>
+                <label>Penerbit</label><br>
+
+                <select name="id_penerbit">
+                    <option value="">-- Pilih --</option>
+                    <?php foreach ($penerbit as $p): ?>
+                        <option value="<?= $p['id_penerbit'] ?>">
+                            <?= $p['nama_penerbit'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <br>
+                <input type="text" name="penerbit_baru" placeholder="Atau tambah penerbit baru">
+            </div>
+
+            <!-- rak -->
+            <div>
+                <label>Rak</label><br>
+
+                <select name="id_rak">
+                    <option value="">-- Pilih Rak --</option>
+                    <?php foreach ($rak as $r): ?>
+                        <option value="<?= $r['id_rak'] ?>">
+                            <?= $r['nama_rak'] ?> - <?= $r['lokasi'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <div>
+                    <label>Tahun Terbit</label><br>
+                    <input type="number" name="tahun_terbit">
+                </div>
+
+                <div>
+                    <label>Jumlah</label><br>
+                    <input type="number" name="jumlah">
+                </div>
+
+                <div>
+                    <label>Deskripsi</label><br>
+                    <textarea name="deskripsi"></textarea>
+                </div>
+
+                <div>
+                    <label>Cover</label><br>
+                    <input type="file" name="cover">
+                </div>
+
+                <br>
+                <button type="submit">Simpan</button>
+                <a href="<?= base_url('buku') ?>">Kembali</a>
+
+        </form>
+        <?= $this->endSection() ?>

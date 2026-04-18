@@ -1,20 +1,27 @@
 <h2>Tambah Detail Buku</h2>
 
-<form action="/peminjaman/saveDetail/<?= $id ?>" method="post">
+<form action="<?= base_url('/peminjaman/saveDetail/' . $id) ?>" method="post">
+    <?= csrf_field(); ?>
 
-Format:
-<br>
-ID_BUKU | JUMLAH
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Pilih Buku</th>
+            <th>Jumlah</th>
+        </tr>
 
-<pre>
-1|2
-3|1
-5|4
-</pre>
+        <?php foreach ($buku as $b): ?>
+        <tr>
+            <td>
+                <input type="checkbox" name="id_buku[]" value="<?= $b['id_buku']; ?>">
+                <?= $b['judul']; ?>
+            </td>
+            <td>
+                <input type="number" name="jumlah[]" value="1" min="1">
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
 
-<textarea name="data_buku" rows="6"></textarea>
-
-<br><br>
-<button>Simpan</button>
-
+    <br>
+    <button type="submit">Simpan</button>
 </form>

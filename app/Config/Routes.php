@@ -51,20 +51,20 @@ $routes->get('buku/print', 'Buku::print');
 $routes->get('buku/wa/(:num)', 'Buku::wa/$1');
 
 //kategori
-$routes->get('/kategori', 'Kategori::index');
-$routes->get('/kategori/create', 'Kategori::create');
-$routes->post('/kategori/store', 'Kategori::store');
-$routes->get('/kategori/edit/(:num)', 'Kategori::edit/$1');
-$routes->post('/kategori/update/(:num)', 'Kategori::update/$1');
-$routes->get('/kategori/delete/(:num)', 'Kategori::delete/$1');
+$routes->get('kategori', 'Kategori::index');
+$routes->get('kategori/create', 'Kategori::create');
+$routes->post('kategori/store', 'Kategori::store');
+$routes->get('kategori/edit/(:num)', 'Kategori::edit/$1');
+$routes->post('kategori/update/(:num)', 'Kategori::update/$1');
+$routes->get('kategori/delete/(:num)', 'Kategori::delete/$1');
 
 //penulis
-$routes->get('/penulis', 'Penulis::index');
-$routes->get('/penulis/create', 'Penulis::create');
-$routes->post('/penulis/save', 'Penulis::save');
-$routes->get('/penulis/edit/(:num)', 'Penulis::edit/$1');
-$routes->post('/penulis/update/(:num)', 'Penulis::update/$1');
-$routes->get('/penulis/delete/(:num)', 'Penulis::delete/$1');
+$routes->get('penulis', 'Penulis::index');
+$routes->get('penulis/create', 'Penulis::create');
+$routes->post('penulis/store', 'Penulis::store');
+$routes->get('penulis/edit/(:num)', 'Penulis::edit/$1');
+$routes->post('penulis/update/(:num)', 'Penulis::update/$1');
+$routes->get('penulis/delete/(:num)', 'Penulis::delete/$1');
 
 //penerbit
 $routes->get('/penerbit', 'Penerbit::index');
@@ -77,11 +77,7 @@ $routes->get('/penerbit/delete/(:num)', 'Penerbit::delete/$1');
 //peminjaman
 $routes->get('/peminjaman', 'Peminjaman::index');
 $routes->get('/peminjaman/create', 'Peminjaman::create');
-$routes->post('/peminjaman/save', 'Peminjaman::save');
-$routes->get('/peminjaman/edit/(:num)', 'Peminjaman::edit/$1');
-$routes->post('/peminjaman/update/(:num)', 'Peminjaman::update/$1');
-$routes->get('/peminjaman/delete/(:num)', 'Peminjaman::delete/$1');
-
+$routes->post('/peminjaman/store', 'Peminjaman::store');
 $routes->get('/peminjaman/detail/(:num)', 'Peminjaman::detail/$1');
-$routes->get('/peminjaman/tambahDetail/(:num)', 'Peminjaman::tambahDetail/$1');
-$routes->post('/peminjaman/saveDetail/(:num)', 'Peminjaman::saveDetail/$1');
+$routes->get('/peminjaman/kembali/(:num)', 'Peminjaman::kembali/$1');
+$routes->get('/peminjaman/delete/(:num)', 'Peminjaman::delete/$1');

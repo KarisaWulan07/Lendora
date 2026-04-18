@@ -3,127 +3,113 @@
 namespace App\Controllers;
 
 use App\Models\PeminjamanModel;
+use App\Models\UsersModel;
 use App\Models\DetailPeminjamanModel;
 
 class Peminjaman extends BaseController
 {
-    protected $peminjamanModel;
-    protected $detailModel;
+    protected $peminjaman;
+    protected $users;
 
     public function __construct()
     {
-        $this->peminjamanModel = new PeminjamanModel();
-        $this->detailModel = new DetailPeminjamanModel();
+        $this->peminjaman = new PeminjamanModel();
+        $this->users = new UsersModel();
     }
 
-    // 🔍 LIST + SEARCH
+    // ================= LIST =================
     public function index()
     {
-        $keyword = $this->request->getGet('keyword');
-
-        if ($keyword) {
-            $data['peminjaman'] = $this->peminjamanModel
-                ->like('id_peminjaman', $keyword)
-                ->orLike('status', $keyword)
-                ->findAll();
-        } else {
-            $data['peminjaman'] = $this->peminjamanModel->findAll();
-        }
+        $data['peminjaman'] = $this->peminjaman
+            ->select('peminjaman.*, anggota.nama as nama_anggota, petugas.nama as nama_petugas')
+            ->join('users as anggota', 'anggota.id = peminjaman.id_anggota')
+            ->join('users as petugas', 'petugas.id = peminjaman.id_petugas')
+            ->findAll();
 
         return view('peminjaman/index', $data);
     }
 
-    // ➕ FORM TAMBAH
+    // ================= FORM =================
     public function create()
     {
-        return view('peminjaman/create');
+        $data = [
+            'anggota' => $this->users->where('role', 'anggota')->findAll(),
+            'petugas' => $this->users->where('role', 'petugas')->findAll(),
+        ];
+
+        return view('peminjaman/create', $data);
     }
 
-    // 💾 SIMPAN
-    public function save()
-    {
-        $this->peminjamanModel->save([
-            'id_anggota' => $this->request->getPost('id_anggota'),
-            'id_petugas' => $this->request->getPost('id_petugas'),
-            'tanggal_pinjam' => $this->request->getPost('tanggal_pinjam'),
-            'tanggal_kembali' => $this->request->getPost('tanggal_kembali'),
-            'status' => 'dipinjam'
-        ]);
+public function store()
+{
+    $peminjamanModel = new \App\Models\PeminjamanModel();
+    $detailModel = new \App\Models\DetailPeminjamanModel();
 
-        return redirect()->to('/peminjaman');
+    $id_anggota = $this->request->getPost('id_anggota');
+
+    if (!$id_anggota) {
+        return redirect()->back()->with('error', 'ID Anggota wajib diisi');
     }
 
-    // ✏️ EDIT
-    public function edit($id)
-    {
-        $data['peminjaman'] = $this->peminjamanModel->find($id);
-        return view('peminjaman/edit', $data);
+    $tanggal_pinjam = date('Y-m-d');
+    $tanggal_kembali = date('Y-m-d', strtotime('+7 days'));
+
+    $id_peminjaman = $peminjamanModel->insert([
+        'id_anggota' => $id_anggota,
+        'id_petugas' => session()->get('id'),
+        'tanggal_pinjam' => $tanggal_pinjam,
+        'tanggal_kembali' => $tanggal_kembali,
+        'status' => 'dipinjam'
+    ]);
+
+    $bukuInput = $this->request->getPost('id_buku');
+    $listBuku = explode("\n", $bukuInput);
+
+    foreach ($listBuku as $buku) {
+        $buku = trim($buku);
+
+        if ($buku != '') {
+            $detailModel->insert([
+                'id_peminjaman' => $id_peminjaman,
+                'id_buku' => $buku,
+                'jumlah' => 1
+            ]);
+        }
     }
 
-    // 🔄 UPDATE
-    public function update($id)
-    {
-        $this->peminjamanModel->update($id, [
-            'id_anggota' => $this->request->getPost('id_anggota'),
-            'id_petugas' => $this->request->getPost('id_petugas'),
-            'tanggal_pinjam' => $this->request->getPost('tanggal_pinjam'),
-            'tanggal_kembali' => $this->request->getPost('tanggal_kembali'),
-            'status' => $this->request->getPost('status')
-        ]);
-
-        return redirect()->to('/peminjaman');
-    }
-
-    // ❌ DELETE
-    public function delete($id)
-    {
-        $this->peminjamanModel->delete($id);
-        return redirect()->to('/peminjaman');
-    }
-
-    // 📄 DETAIL
+    return redirect()->to('/peminjaman');
+}
+    // ================= DETAIL =================
     public function detail($id)
     {
-        $data['peminjaman'] = $this->peminjamanModel->find($id);
-
-        $data['detail'] = $this->detailModel
-            ->select('detail_peminjaman.*, buku.judul')
-            ->join('buku', 'buku.id_buku = detail_peminjaman.id_buku')
+        $data['peminjaman'] = $this->peminjaman
+            ->select('peminjaman.*, anggota.nama as nama_anggota, petugas.nama as nama_petugas')
+            ->join('users as anggota', 'anggota.id = peminjaman.id_anggota')
+            ->join('users as petugas', 'petugas.id = peminjaman.id_petugas')
             ->where('id_peminjaman', $id)
-            ->findAll();
+            ->first();
 
         return view('peminjaman/detail', $data);
     }
 
-    // ➕ FORM TAMBAH DETAIL
-    public function tambahDetail($id)
+    // ================= KEMBALIKAN =================
+    public function kembali($id)
+{
+    $model = new \App\Models\PeminjamanModel();
+
+    $model->update($id, [
+        'tanggal_kembali' => date('Y-m-d'),
+        'status' => 'dikembalikan'
+    ]);
+
+    return redirect()->to('/peminjaman')
+        ->with('success', 'Buku berhasil dikembalikan');
+}
+
+    // ================= DELETE =================
+    public function delete($id)
     {
-        return view('peminjaman/tambah_detail', ['id' => $id]);
-    }
-
-    // 💾 SIMPAN DETAIL MULTI
-    public function saveDetail($id)
-    {
-        $input = $this->request->getPost('data_buku');
-        $rows = explode("\n", $input);
-
-        foreach ($rows as $row) {
-            $pecah = explode('|', $row);
-
-            if (count($pecah) == 2) {
-                $this->detailModel->save([
-                    'id_peminjaman' => $id,
-                    'id_buku' => trim($pecah[0]),
-                    'jumlah' => trim($pecah[1])
-                ]);
-            }
-        }
-
-        // update status
-        $this->peminjamanModel->update($id, [
-            'status' => 'dipinjam'
-        ]);
-
-        return redirect()->to('/peminjaman/detail/' . $id);
+        $this->peminjaman->delete($id);
+        return redirect()->to('/peminjaman');
     }
 }
