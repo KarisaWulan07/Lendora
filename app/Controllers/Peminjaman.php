@@ -6,6 +6,7 @@ use App\Models\PeminjamanModel;
 use App\Models\DetailPeminjamanModel;
 use App\Models\BukuModel;
 use App\Models\UsersModel;
+use App\Models\KategoriModel; 
 
 class Peminjaman extends BaseController
 {
@@ -41,25 +42,55 @@ class Peminjaman extends BaseController
         return view('peminjaman/detail',$data);
     }
 
-   public function create()
-{
-    $buku = new BukuModel();
-    $users = new UsersModel();
+    public function create()
+    {
+        $bukuModel = new BukuModel();
+        $users = new UsersModel();
 
-    $data = [
-        'buku' => $buku->findAll(),
+        $search = $this->request->getGet('search');
 
-        // anggota = user login (auto)
-        'anggota_login' => session()->get('nama'),
+        // ✅ FILTER + JOIN PENULIS
+        if($search){
+            $buku = $bukuModel
+                ->select('buku.*, penulis.nama_penulis')
+                ->join('kategori', 'kategori.id_kategori = buku.id_kategori')
+                ->join('penulis', 'penulis.id_penulis = buku.id_penulis', 'left')
+                ->like('kategori.nama_kategori', $search)
+                ->findAll();
+        } else {
+            $buku = $bukuModel
+                ->select('buku.*, penulis.nama_penulis')
+                ->join('penulis', 'penulis.id_penulis = buku.id_penulis', 'left')
+                ->findAll();
+        }
 
-        // petugas list
-        'petugas' => $users->where('role','petugas')->findAll(),
+        // ✅ CART (FIX PENULIS)
+        $cartSession = session()->get('cart') ?? [];
+        $cart = [];
 
-        'cart' => session()->get('cart') ?? []
-    ];
+        foreach ($cartSession as $id => $qty) {
+            $b = $bukuModel
+                ->select('buku.*, penulis.nama_penulis')
+                ->join('penulis', 'penulis.id_penulis = buku.id_penulis', 'left')
+                ->where('buku.id_buku', $id)
+                ->first();
 
-    return view('peminjaman/create',$data);
-}
+            if ($b) {
+                $b['qty'] = $qty;
+                $cart[] = $b;
+            }
+        }
+
+        $data = [
+            'buku' => $buku,
+            'search' => $search,
+            'anggota' => $users->findAll(),
+            'petugas' => $users->where('role', 'petugas')->findAll(),
+            'cart' => $cart
+        ];
+
+        return view('peminjaman/create', $data);
+    }
 
     public function addCart($id)
     {
@@ -87,67 +118,71 @@ class Peminjaman extends BaseController
         return redirect()->back();
     }
 
-   public function store()
-{
-    $peminjaman = new PeminjamanModel();
-    $detail = new DetailPeminjamanModel();
-    $bukuModel = new BukuModel();
+    public function store()
+   
+    {
+       
+        $peminjaman = new PeminjamanModel();
+        $detail = new DetailPeminjamanModel();
+        $bukuModel = new BukuModel();
 
-    $cart = session()->get('cart');
+        $cart = session()->get('cart');
 
-    if(!$cart){
-        return redirect()->back()->with('error','Pilih buku dulu');
-    }
-
-    // cek apakah buku valid
-    foreach($cart as $id_buku => $qty){
-
-        $b = $bukuModel->find($id_buku);
-
-        if(!$b){
-            return redirect()->back()->with('error','Buku tidak ditemukan');
+        if(!$cart){
+            return redirect()->back()->with('error','Pilih buku dulu');
         }
 
-        if($b['tersedia'] < $qty){
-            return redirect()->back()
-                ->with('error','Stok "'.$b['judul'].'" tidak cukup');
-        }
-    }
+        // ✅ VALIDASI STOK
+        foreach($cart as $id_buku => $qty){
 
-    // INSERT PEMINJAMAN (AMANIN SESSION)
-   $id = $peminjaman->insert([
-    'id_anggota' => session()->get('id_user'), // AUTO LOGIN
+            $b = $bukuModel->find($id_buku);
+
+            if(!$b){
+                return redirect()->back()->with('error','Buku tidak ditemukan');
+            }
+
+            if($b['tersedia'] < $qty){
+                return redirect()->back()
+                    ->with('error','Stok "'.$b['judul'].'" tidak cukup');
+            }
+        }
+
+        // ✅ AUTO TANGGAL
+        $tanggal_pinjam = date('Y-m-d');
+        $tanggal_kembali = date('Y-m-d', strtotime('+7 days'));
+
+        // ✅ INSERT
+       $id = $peminjaman->insert([
+    'id_anggota' => session()->get('id_user'), // ✅ FIX
     'id_petugas' => $this->request->getPost('id_petugas'),
-    'tanggal_pinjam' => $this->request->getPost('tanggal_pinjam'),
-    'tanggal_kembali' => $this->request->getPost('tanggal_kembali'),
+    'tanggal_pinjam' => $tanggal_pinjam,
+    'tanggal_kembali' => $tanggal_kembali,
     'status' => 'dipinjam'
 ]);
 
-    // cek insert berhasil atau tidak
-    if(!$id){
-        return redirect()->back()->with('error','Gagal simpan peminjaman');
+        if(!$id){
+            return redirect()->back()->with('error','Gagal simpan peminjaman');
+        }
+
+        // ✅ DETAIL + UPDATE STOK
+        foreach($cart as $id_buku => $qty){
+
+            $b = $bukuModel->find($id_buku);
+
+            $detail->insert([
+                'id_peminjaman' => $id,
+                'id_buku' => $id_buku,
+                'jumlah' => $qty
+            ]);
+
+            $bukuModel->update($id_buku, [
+                'tersedia' => $b['tersedia'] - $qty
+            ]);
+        }
+
+        session()->remove('cart');
+
+        return redirect()->to(base_url('peminjaman'))
+            ->with('success','Peminjaman berhasil disimpan');
     }
-
-    foreach($cart as $id_buku => $qty){
-
-        $b = $bukuModel->find($id_buku);
-
-        // insert detail
-        $detail->insert([
-            'id_peminjaman' => $id,
-            'id_buku' => $id_buku,
-            'jumlah' => $qty
-        ]);
-
-        // update stok
-        $bukuModel->update($id_buku, [
-            'tersedia' => $b['tersedia'] - $qty
-        ]);
-    }
-
-    session()->remove('cart');
-
-    return redirect()->to(base_url('peminjaman'))
-        ->with('success','Peminjaman berhasil disimpan');
-}
 }

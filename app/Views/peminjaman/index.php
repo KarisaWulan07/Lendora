@@ -24,6 +24,12 @@
     <td><?= $p['status'] ?></td>
     <td>
         <a href="<?= base_url('peminjaman/detail/'.$p['id_peminjaman']) ?>">Detail</a>
+        <?php if(session()->get('role') == 'admin'): ?>
+    <a href="<?= base_url('peminjaman/delete/'.$p['id_peminjaman']) ?>"
+       onclick="return confirm('hapus?')">
+       Hapus
+    </a>
+<?php endif ?>
     </td>
 </tr>
 <?php endforeach ?>

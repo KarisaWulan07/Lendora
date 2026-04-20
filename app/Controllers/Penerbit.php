@@ -6,59 +6,69 @@ use App\Models\PenerbitModel;
 
 class Penerbit extends BaseController
 {
-    protected $penerbit;
+    protected $penerbitModel;
 
     public function __construct()
     {
-        $this->penerbit = new PenerbitModel();
+        $this->penerbitModel = new PenerbitModel();
     }
 
+    // READ + SEARCH
     public function index()
     {
-        $data = [
-            'penerbit' => $this->penerbit->findAll()
-        ];
+        $keyword = $this->request->getGet('keyword');
+
+        if ($keyword) {
+            $data['penerbit'] = $this->penerbitModel
+                ->like('nama_penerbit', $keyword)
+                ->orLike('alamat', $keyword)
+                ->findAll();
+        } else {
+            $data['penerbit'] = $this->penerbitModel->findAll();
+        }
 
         return view('penerbit/index', $data);
     }
 
+    // CREATE FORM
     public function create()
     {
         return view('penerbit/create');
     }
 
+    // STORE
     public function store()
     {
-        $this->penerbit->save([
+        $this->penerbitModel->save([
             'nama_penerbit' => $this->request->getPost('nama_penerbit'),
-            'alamat'        => $this->request->getPost('alamat')
+            'alamat'        => $this->request->getPost('alamat'),
         ]);
 
-        return redirect()->to('/penerbit');
+        return redirect()->to(base_url('penerbit'));
     }
 
+    // EDIT FORM
     public function edit($id)
     {
-        $data = [
-            'penerbit' => $this->penerbit->find($id)
-        ];
-
+        $data['penerbit'] = $this->penerbitModel->find($id);
         return view('penerbit/edit', $data);
     }
 
+    // UPDATE
     public function update($id)
     {
-        $this->penerbit->update($id, [
+        $this->penerbitModel->update($id, [
             'nama_penerbit' => $this->request->getPost('nama_penerbit'),
-            'alamat'        => $this->request->getPost('alamat')
+            'alamat'        => $this->request->getPost('alamat'),
         ]);
 
-        return redirect()->to('/penerbit');
+        return redirect()->to(base_url('penerbit'));
     }
 
+    // DELETE
     public function delete($id)
     {
-        $this->penerbit->delete($id);
-        return redirect()->to('/penerbit');
+        $this->penerbitModel->delete($id);
+        return redirect()->to(base_url('penerbit'));
     }
 }

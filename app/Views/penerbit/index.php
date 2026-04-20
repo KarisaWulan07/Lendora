@@ -1,26 +1,42 @@
+<?= $this->extend('layouts/main') ?>
+<?= $this->section('content') ?>
 
+<h2>Data Penerbit</h2>
 
-<h3>Data Penerbit</h3>
+<a href="<?= base_url('penerbit/create') ?>">+ Tambah Penerbit</a>
 
-<a href="<?= base_url('penerbit/create') ?>">+ Tambah</a>
+<br><br>
 
-<table border="1" cellpadding="5">
+<form method="get" action="<?= base_url('penerbit') ?>">
+    <input type="text" name="keyword" placeholder="Cari penerbit..." value="<?= $_GET['keyword'] ?? '' ?>">
+    <button type="submit">Cari</button>
+</form>
+
+<br>
+
+<table border="1" cellpadding="8" cellspacing="0">
     <tr>
-        <th>ID</th>
+        <th>No</th>
         <th>Nama Penerbit</th>
         <th>Alamat</th>
         <th>Aksi</th>
     </tr>
 
-    <?php foreach ($penerbit as $p): ?>
+    <?php $no = 1; foreach ($penerbit as $row): ?>
     <tr>
-        <td><?= $p['id_penerbit'] ?></td>
-        <td><?= $p['nama_penerbit'] ?></td>
-        <td><?= $p['alamat'] ?></td>
+        <td><?= $no++ ?></td>
+        <td><?= $row['nama_penerbit'] ?></td>
+        <td><?= $row['alamat'] ?></td>
         <td>
-            <a href="<?= base_url('penerbit/edit/'.$p['id_penerbit']) ?>">Edit</a>
-            <a href="<?= base_url('penerbit/delete/'.$p['id_penerbit']) ?>" onclick="return confirm('Hapus data?')">Hapus</a>
+            <a href="<?= base_url('penerbit/edit/' . $row['id_penerbit']) ?>">Edit</a>
+            |
+            <a href="<?= base_url('penerbit/delete/' . $row['id_penerbit']) ?>"
+               onclick="return confirm('Yakin hapus data?')">
+               Hapus
+            </a>
         </td>
     </tr>
     <?php endforeach; ?>
 </table>
+
+<?= $this->endSection() ?>

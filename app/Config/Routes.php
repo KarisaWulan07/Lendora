@@ -92,13 +92,12 @@ $routes->get('penulis/delete/(:num)', 'Penulis::delete/$1');
 // ========================
 // PENERBIT
 // ========================
-$routes->get('/penerbit', 'Penerbit::index');
-$routes->get('/penerbit/create', 'Penerbit::create');
-$routes->post('/penerbit/save', 'Penerbit::save');
-$routes->get('/penerbit/edit/(:num)', 'Penerbit::edit/$1');
-$routes->post('/penerbit/update/(:num)', 'Penerbit::update/$1');
-$routes->get('/penerbit/delete/(:num)', 'Penerbit::delete/$1');
-
+$routes->get('penerbit', 'Penerbit::index');
+$routes->get('penerbit/create', 'Penerbit::create');
+$routes->post('penerbit/store', 'Penerbit::store');
+$routes->get('penerbit/edit/(:num)', 'Penerbit::edit/$1');
+$routes->post('penerbit/update/(:num)', 'Penerbit::update/$1');
+$routes->get('penerbit/delete/(:num)', 'Penerbit::delete/$1');
 
 // ========================
 // PEMINJAMAN
@@ -108,7 +107,7 @@ $routes->get('peminjaman/create','Peminjaman::create');
 $routes->post('peminjaman/store','Peminjaman::store');
 
 $routes->get('peminjaman/detail/(:num)','Peminjaman::detail/$1');
-
+$routes->get('peminjaman/delete/(:num)', 'Peminjaman::delete/$1');
 $routes->get('peminjaman/addCart/(:num)','Peminjaman::addCart/$1');
 $routes->get('peminjaman/removeCart/(:num)','Peminjaman::removeCart/$1');
 

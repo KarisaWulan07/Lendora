@@ -1,16 +1,20 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h3>Tambah Penerbit</h3>
+<h2>Tambah Penerbit</h2>
 
-<form method="post" action="<?= base_url('penerbit/store') ?>">
-    Nama Penerbit <br>
+<form action="<?= base_url('penerbit/store') ?>" method="post">
+
+    <label>Nama Penerbit</label><br>
     <input type="text" name="nama_penerbit" required>
     <br><br>
 
-    Alamat <br>
+    <label>Alamat</label><br>
     <textarea name="alamat"></textarea>
     <br><br>
 
     <button type="submit">Simpan</button>
+
 </form>
+
+<?= $this->endSection() ?>

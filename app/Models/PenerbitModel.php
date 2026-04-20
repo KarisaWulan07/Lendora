@@ -8,5 +8,9 @@ class PenerbitModel extends Model
 {
     protected $table = 'penerbit';
     protected $primaryKey = 'id_penerbit';
-    protected $allowedFields = ['nama_penerbit', 'alamat'];
+
+    protected $allowedFields = [
+        'nama_penerbit',
+        'alamat'
+    ];
 }

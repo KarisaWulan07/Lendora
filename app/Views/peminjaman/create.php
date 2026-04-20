@@ -5,7 +5,10 @@
 
 <p><?= session()->get('nama') ?></p>
 
+<!-- ✅ HANYA 1 FORM -->
 <form action="<?= base_url('peminjaman/store') ?>" method="post">
+
+<input type="hidden" name="id_anggota" value="<?= session()->get('id_user') ?>">
 
 <label>Petugas</label>
 <select name="id_petugas" required>
@@ -17,8 +20,17 @@
     <?php endforeach ?>
 </select>
 
-<input type="date" name="tanggal_pinjam">
-<input type="date" name="tanggal_kembali">
+<hr>
+
+<h3>Cari Kategori</h3>
+
+<input type="text" name="search" 
+       placeholder="Cari kategori..." 
+       value="<?= $search ?? '' ?>">
+
+<button type="submit" formaction="<?= base_url('peminjaman/create') ?>" formmethod="get">
+    Cari
+</button>
 
 <hr>
 
@@ -28,12 +40,17 @@
 
 <?php foreach($buku as $b): ?>
 <div style="border:1px solid #ccc;padding:10px;width:180px">
+    
     <img src="<?= base_url('uploads/buku/'.$b['cover']) ?>" width="100%">
-    <p><?= $b['judul'] ?></p>
+    
+    <p><b><?= $b['judul'] ?></b></p>
+    <p>Penulis: <?= $b['nama_penulis'] ?? '-' ?></p>
     <p>Stok: <?= $b['tersedia'] ?></p>
-    <a href="<?= base_url('peminjaman/addCart/'.$b['id_buku']) ?>">
-        <button type="button">Pinjam</button>
-    </a>
+
+    <a href="<?= base_url('buku/detail/'.$b['id_buku']) ?>">Detail</a><br>
+
+    <a href="<?= base_url('peminjaman/addCart/'.$b['id_buku']) ?>">Pinjam</a>
+
 </div>
 <?php endforeach ?>
 
@@ -43,12 +60,18 @@
 
 <h3>Buku dipilih</h3>
 
-<?php foreach($cart as $id=>$qty): ?>
-<p>
-ID Buku: <?= $id ?> | Qty: <?= $qty ?>
-<a href="<?= base_url('peminjaman/removeCart/'.$id) ?>">hapus</a>
-</p>
-<?php endforeach ?>
+<?php if(!empty($cart)): ?>
+    <?php foreach($cart as $b): ?>
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+            <p><?= $b['judul'] ?> (<?= $b['qty'] ?>)</p>
+            <a href="<?= base_url('peminjaman/removeCart/'.$b['id_buku']) ?>">Hapus</a>
+        </div>
+    <?php endforeach ?>
+<?php else: ?>
+    <p>Belum ada buku dipilih</p>
+<?php endif; ?>
+
+<br>
 
 <button type="submit">Simpan</button>
 
