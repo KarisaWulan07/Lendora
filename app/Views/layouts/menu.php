@@ -22,9 +22,22 @@ $role = session()->get('role');
     </a><br>
 <?php endif; ?>
 
+<?php if (in_array($role, ['admin', 'petugas', ' anggota'])) : ?>
+    <a href="<?= base_url('/rak') ?>">
+        🗄️ Rak
+    </a><br>
+<?php endif; ?>
+
 <?php if (in_array($role, ['admin', 'petugas','anggota'])) : ?>
     <a href="<?= base_url('/peminjaman') ?>">
         📦 Peminjaman
+    </a><br>
+<?php endif; ?>
+
+<!-- 🔥 TAMBAHAN PENGEMBALIAN -->
+<?php if (in_array($role, ['admin', 'petugas'])) : ?>
+    <a href="<?= base_url('/pengembalian') ?>">
+        🔄 Pengembalian
     </a><br>
 <?php endif; ?>
 

@@ -1,43 +1,24 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
+<h2>Detail Peminjaman</h2>
 
-<h3>Detail Peminjaman</h3>
+<p>Anggota: <?= $peminjaman['nama'] ?></p>
+<p>Tgl Pinjam: <?= $peminjaman['tanggal_pinjam'] ?></p>
+<p>Tgl Kembali: <?= $peminjaman['tanggal_kembali'] ?></p>
 
-<table border="1">
-    <tr>
-        <td>ID Peminjaman</td>
-        <td><?= $peminjaman['id_peminjaman'] ?></td>
-    </tr>
+<table border="1" width="100%">
+<tr>
+    <th>Buku</th>
+    <th>Jumlah</th>
+</tr>
 
-    <tr>
-        <td>ID Anggota</td>
-        <td><?= $peminjaman['id_anggota'] ?></td>
-    </tr>
-
-    <tr>
-        <td>ID Petugas</td>
-        <td><?= $peminjaman['id_petugas'] ?></td>
-    </tr>
-
-    <tr>
-        <td>Tanggal Pinjam</td>
-        <td><?= $peminjaman['tanggal_pinjam'] ?></td>
-    </tr>
-
-    <tr>
-        <td>Tanggal Kembali</td>
-        <td><?= $peminjaman['tanggal_kembali'] ?></td>
-    </tr>
-
-    <tr>
-        <td>Status</td>
-        <td><?= $peminjaman['status'] ?></td>
-    </tr>
+<?php foreach($detail as $d): ?>
+<tr>
+    <td><?= $d['judul'] ?></td>
+    <td><?= $d['jumlah'] ?></td>
+</tr>
+<?php endforeach ?>
 </table>
-
-<br>
-
-<a href="<?= base_url('peminjaman') ?>">Kembali</a>
 
 <?= $this->endSection() ?>

@@ -62,6 +62,10 @@
     <textarea name="deskripsi"><?= $buku['deskripsi'] ?></textarea><br><br>
 
     Cover:<br>
+
+    <!-- SIMPAN COVER LAMA -->
+    <input type="hidden" name="old_cover" value="<?= $buku['cover'] ?>">
+
     <input type="file" name="cover"><br><br>
 
     Cover Saat Ini:<br>
@@ -79,7 +83,7 @@
 
     <?php else: ?>
         -
-    <?php endif; ?>
+    <?php endif; ?><br><br>
 
     <button type="submit">Update</button>
     <a href="<?= base_url('buku') ?>">Kembali</a>

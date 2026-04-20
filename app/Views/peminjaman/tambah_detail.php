@@ -5,18 +5,22 @@
 
     <table border="1" cellpadding="10">
         <tr>
-            <th>Pilih Buku</th>
+            <th>Pilih</th>
+            <th>Judul Buku</th>
             <th>Jumlah</th>
         </tr>
 
         <?php foreach ($buku as $b): ?>
         <tr>
             <td>
-                <input type="checkbox" name="id_buku[]" value="<?= $b['id_buku']; ?>">
-                <?= $b['judul']; ?>
+                <input type="checkbox" name="buku[<?= $b['id_buku']; ?>][id_buku]" value="<?= $b['id_buku']; ?>">
             </td>
+            <td><?= $b['judul']; ?></td>
             <td>
-                <input type="number" name="jumlah[]" value="1" min="1">
+                <input type="number" 
+                       name="buku[<?= $b['id_buku']; ?>][jumlah]" 
+                       value="1" 
+                       min="1">
             </td>
         </tr>
         <?php endforeach; ?>
