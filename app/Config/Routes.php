@@ -21,23 +21,20 @@ $allRole   = ['filter' => 'role:admin, petugas, anggota'];
 // ========================
 // AUTH (LOGIN & REGISTER)
 // ========================
-$routes->get('/login', 'Auth::login');
-$routes->post('/proses-login', 'Auth::prosesLogin');
-$routes->get('/logout', 'Auth::logout');
 
-// 🔥 FIX PENTING (REGISTER)
+$routes->get('/login', 'Auth::login');
+$routes->post('/login', 'Auth::prosesLogin');
+
 $routes->get('/register', 'Auth::register');
 $routes->post('/register', 'Auth::prosesRegister');
 
+$routes->get('/logout', 'Auth::logout');
 
-// ========================
-// HOME / DASHBOARD
-// ========================
+
+// ================= DASHBOARD (WAJIB LOGIN) =================
 $routes->get('/', 'Home::index', $authFilter);
 $routes->get('/dashboard', 'Home::index', $authFilter);
 
-
-// ========================
 // USERS
 // ========================
 $routes->get('/users/create', 'Users::create');
@@ -102,14 +99,31 @@ $routes->get('penerbit/delete/(:num)', 'Penerbit::delete/$1');
 // ========================
 // PEMINJAMAN
 // ========================
-$routes->get('peminjaman','Peminjaman::index');
-$routes->get('peminjaman/create','Peminjaman::create');
-$routes->post('peminjaman/store','Peminjaman::store');
 
-$routes->get('peminjaman/detail/(:num)','Peminjaman::detail/$1');
-$routes->get('peminjaman/delete/(:num)', 'Peminjaman::delete/$1');
-$routes->get('peminjaman/addCart/(:num)','Peminjaman::addCart/$1');
-$routes->get('peminjaman/removeCart/(:num)','Peminjaman::removeCart/$1');
+// =====================
+// PEMINJAMAN
+// =====================
+$routes->get('peminjaman', 'Peminjaman::index');
+$routes->get('peminjaman/create', 'Peminjaman::create');
+$routes->post('peminjaman/store', 'Peminjaman::store');
+$routes->get('/peminjaman/perpanjang/(:num)', 'Peminjaman::perpanjang/$1');
+$routes->get('/peminjaman/detail/(:num)', 'Peminjaman::detail/$1');
+$routes->get('/peminjaman/delete/(:num)', 'Peminjaman::delete/$1');
+$routes->get('peminjaman/print/(:num)', 'Peminjaman::print/$1');
+$routes->get('/peminjaman/addCart/(:num)', 'Peminjaman::addCart/$1');
+$routes->get('/peminjaman/removeCart/(:num)', 'Peminjaman::removeCart/$1');
+$routes->get('peminjaman/wa/(:num)', 'Peminjaman::wa/$1');
+
+// =====================
+// TAMBAHAN
+// =====================
+$routes->get('/peminjaman/wa/(:num)', 'Peminjaman::kirimWA/$1');
+
+
+// =====================
+// KHUSUS ADMIN & PETUGAS
+// =====================
+$routes->get('/peminjaman/print', 'Peminjaman::print', ['filter' => 'role:admin,petugas']);
 
 
 // ========================
@@ -133,3 +147,30 @@ $routes->post('/rak/store', 'Rak::store');
 $routes->get('/rak/edit/(:num)', 'Rak::edit/$1');
 $routes->post('/rak/update/(:num)', 'Rak::update/$1');
 $routes->get('/rak/delete/(:num)', 'Rak::delete/$1');
+
+//Backup
+$routes->get('/backup', 'Backup::index');
+
+$routes->get('/restore', 'Restore::index');
+$routes->post('/restore/auth', 'Restore::auth');
+$routes->get('/restore/form', 'Restore::form');
+$routes->post('/restore/process', 'Restore::process');
+
+//denda
+$routes->group('denda', function($routes){
+
+    $routes->get('/', 'Denda::index');
+
+    $routes->get('bayar/(:num)', 'Denda::bayar/$1');
+    $routes->post('prosesBayar', 'Denda::prosesBayar');
+
+    // 🔥 WAJIB ADA INI
+    $routes->get('approve/(:num)', 'Denda::approve/$1');
+    $routes->get('tolak/(:num)', 'Denda::tolak/$1');
+
+    $routes->get('detail/(:num)', 'Denda::detail/$1');
+    
+});
+$routes->get('denda/verifikasi/(:num)', 'Denda::verifikasi/$1');
+$routes->get('denda/qris/(:num)', 'Denda::qris/$1');
+$routes->post('denda/konfirmasiBayar', 'Denda::konfirmasiBayar');

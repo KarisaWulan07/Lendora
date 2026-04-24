@@ -13,4 +13,12 @@ class DetailPeminjamanModel extends Model
         'id_buku',
         'jumlah'
     ];
+
+    public function searchByBuku($keyword)
+    {
+        return $this->select('detail_peminjaman.*, buku.judul_buku')
+            ->join('buku', 'buku.id_buku = detail_peminjaman.id_buku')
+            ->like('buku.judul_buku', $keyword)
+            ->findAll();
+    }
 }

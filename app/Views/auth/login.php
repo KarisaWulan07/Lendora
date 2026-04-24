@@ -30,7 +30,7 @@
                 <?php endif; ?>
 
                 <!-- Form Login -->
-                <form action="<?= base_url('/proses-login') ?>" method="post">
+              <form action="<?= base_url('/login') ?>" method="post">
 
                     <div class="mb-3">
                         <label class="form-label">Username</label>
@@ -52,6 +52,10 @@
                 <div class="text-center mt-3">
                     <a href="<?= base_url('users/create') ?>" class="btn btn-outline-success btn-sm">
                         <i class="bi bi-person-plus"></i> Daftar Baru
+                        <br>
+                    <a href="<?= base_url('restore') ?>" class="btn btn-outline-danger btn-sm">
+<i class="bi bi-database"></i> Restore DB
+</a>
                     </a>
                 </div>
 

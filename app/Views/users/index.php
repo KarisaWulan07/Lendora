@@ -37,6 +37,7 @@
                 <th>Username</th>
                 <th>Role</th>
                 <th>Foto</th>
+        
                 <?php if (session()->get('role') == 'admin') : ?>
                     <th>Aksi</th>
                 <?php endif; ?>

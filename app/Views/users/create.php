@@ -57,8 +57,8 @@
                     </div>
 
                     <div>
-                        <label>Foto Profil</label><br>
-                        <input type="file" name="foto" accept="image/*"><br>
+                        nam<label>Foto Profil</label><br>
+                        <input type="file" e="foto" accept="image/*"><br>
                         <small>Kosongkan jika tidak upload foto</small>
                     </div>
 

@@ -22,7 +22,7 @@ $role = session()->get('role');
     </a><br>
 <?php endif; ?>
 
-<?php if (in_array($role, ['admin', 'petugas', ' anggota'])) : ?>
+<?php if (in_array($role, ['admin', 'petugas','anggota'])) : ?>
     <a href="<?= base_url('/rak') ?>">
         🗄️ Rak
     </a><br>
@@ -34,10 +34,15 @@ $role = session()->get('role');
     </a><br>
 <?php endif; ?>
 
-<!-- 🔥 TAMBAHAN PENGEMBALIAN -->
 <?php if (in_array($role, ['admin', 'petugas'])) : ?>
     <a href="<?= base_url('/pengembalian') ?>">
         🔄 Pengembalian
+    </a><br>
+<?php endif; ?>
+
+<?php if (in_array($role, ['admin', 'petugas','anggota'])) : ?>
+    <a href="<?= base_url('/denda') ?>">
+        💰 Denda
     </a><br>
 <?php endif; ?>
 
@@ -64,6 +69,10 @@ $role = session()->get('role');
     ⚙️ Setting
 </a><br>
 
+<?php if (session()->get('role') == 'admin') : ?>
+<a href="<?= base_url('/backup') ?>" class="btn btn-success">Backup Database</a>
+<?php endif; ?>
+
 <a href="<?= site_url('/logout') ?>">
     🚪 Log Out
 </a>
@@ -73,4 +82,4 @@ $role = session()->get('role');
 Masuk sebagai: <b><?= session('nama'); ?> (<?= session('role'); ?>)</b>
 <br>
 
-<img src="<?= base_url('uploads/users/' . session()->get('foto')) ?>" height="80" />
+ <img src="<?= base_url('uploads/users/' . session()->get('foto')) ?>" height="80" />

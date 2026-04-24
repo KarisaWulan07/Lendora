@@ -4,99 +4,159 @@ namespace App\Controllers;
 
 use App\Models\PengembalianModel;
 use App\Models\PeminjamanModel;
+use App\Models\DetailPeminjamanModel;
+use App\Models\BukuModel;
+use App\Models\DendaModel;
 
 class Pengembalian extends BaseController
 {
-    protected $pengembalian;
-    protected $peminjaman;
+   public function index()
+{
+    $model = new PengembalianModel();
 
-    public function __construct()
-    {
-        $this->pengembalian = new PengembalianModel();
-        $this->peminjaman = new PeminjamanModel();
+    $search = trim($this->request->getGet('search') ?? '');
+
+    $builder = $model
+        ->select('
+            pengembalian.*,
+            peminjaman.id_peminjaman,
+            COALESCE(denda.jumlah_denda, 0) as jumlah_denda,
+            COALESCE(denda.status_denda, "-") as status_denda
+        ')
+        ->join('peminjaman', 'peminjaman.id_peminjaman = pengembalian.id_peminjaman')
+
+        // 🔥 INI YANG BENAR
+        ->join('denda', 'denda.id_pengembalian = pengembalian.id_pengembalian', 'left');
+
+    // 🔍 SEARCH (tetap dipakai)
+    if ($search !== '') {
+        $builder->groupStart()
+            ->like('pengembalian.id_pengembalian', $search)
+            ->orLike('peminjaman.id_peminjaman', $search)
+        ->groupEnd();
     }
 
-    // ================= INDEX + SEARCH =================
-    public function index()
-    {
-        $keyword = $this->request->getGet('keyword');
+    $data['pengembalian'] = $builder->findAll();
 
-        if ($keyword) {
-            $data['pengembalian'] = $this->pengembalian
-                ->like('id_peminjaman', $keyword)
-                ->orLike('tanggal_dikembalikan', $keyword)
-                ->findAll();
-        } else {
-            $data['pengembalian'] = $this->pengembalian->findAll();
-        }
-
-        return view('pengembalian/index', $data);
-    }
-
-    // ================= CREATE =================
+    return view('pengembalian/index', $data);
+}
     public function create()
     {
-        return view('pengembalian/create');
+        $peminjaman = new PeminjamanModel();
+
+        $data['peminjaman'] = $peminjaman
+            ->where('status', 'dipinjam')
+            ->findAll();
+
+        return view('pengembalian/create', $data);
     }
 
-    // ================= STORE (AUTO DENDA + UPDATE STATUS) =================
     public function store()
 {
+    $pengembalian = new PengembalianModel();
+    $peminjaman = new PeminjamanModel();
+    $detail = new DetailPeminjamanModel();
+    $buku = new BukuModel();
+    $dendaModel = new DendaModel();
+
     $id_peminjaman = $this->request->getPost('id_peminjaman');
 
-    $pinjam = $this->peminjaman->find($id_peminjaman);
+    $pinjam = $peminjaman->find($id_peminjaman);
 
     if (!$pinjam) {
         return redirect()->back()->with('error', 'Data peminjaman tidak ditemukan');
     }
 
-    $tanggal_kembali = date('Y-m-d');
+    $today = date('Y-m-d');
 
+    // 🔥 HITUNG DENDA
     $denda = 0;
-    if ($pinjam['tanggal_kembali'] && $tanggal_kembali > $pinjam['tanggal_kembali']) {
-        $terlambat = (strtotime($tanggal_kembali) - strtotime($pinjam['tanggal_kembali'])) / (60 * 60 * 24);
-        $denda = $terlambat * 1000;
+    if ($today > $pinjam['tanggal_kembali']) {
+        $selisih = (strtotime($today) - strtotime($pinjam['tanggal_kembali'])) / 86400;
+        $denda = $selisih * 1000;
     }
 
-    // simpan pengembalian
-    $this->pengembalian->insert([
+    // 🔥 SIMPAN PENGEMBALIAN
+    $pengembalian->insert([
         'id_peminjaman' => $id_peminjaman,
-        'tanggal_dikembalikan' => $tanggal_kembali,
-        'denda' => $denda
+        'tanggal_dikembalikan' => $today
     ]);
 
-    // 🔥 UPDATE STATUS (FIX)
-    $this->peminjaman
-        ->set('status', 'dikembalikan')
-        ->where('id_peminjaman', $id_peminjaman)
-        ->update();
+    // ambil ID pengembalian terbaru
+    $id_pengembalian = $pengembalian->insertID();
 
-    return redirect()->to('/pengembalian')
-        ->with('success', 'Pengembalian berhasil');
+    // 🔥 SIMPAN DENDA (FIX DI SINI)
+    if ($denda > 0) {
+        $dendaModel->insert([
+            'id_pengembalian' => $id_pengembalian,
+            'jumlah_denda' => $denda,
+            'status_denda' => 'belum', // ✅ SUDAH BENAR
+            'metode_pembayaran' => null
+        ]);
+    }
+
+    // 🔥 UPDATE STATUS PEMINJAMAN
+    $peminjaman->update($id_peminjaman, [
+        'status' => 'dikembalikan'
+    ]);
+
+    // 🔥 KEMBALIKAN STOK BUKU
+    $list = $detail->where('id_peminjaman', $id_peminjaman)->findAll();
+
+    foreach ($list as $d) {
+        $b = $buku->find($d['id_buku']);
+
+        if ($b) {
+            $buku->update($d['id_buku'], [
+                'tersedia' => $b['tersedia'] + $d['jumlah']
+            ]);
+        }
+    }
+
+    return redirect()->to(base_url('pengembalian'))
+        ->with('success', 'Buku berhasil dikembalikan');
 }
+    public function delete($id)
+    {
+        $pengembalian = new PengembalianModel();
+        $peminjaman = new PeminjamanModel();
 
-    // ================= EDIT =================
+        $data = $pengembalian->find($id);
+
+        if ($data) {
+            $peminjaman->update($data['id_peminjaman'], [
+                'status' => 'dipinjam'
+            ]);
+
+            $pengembalian->delete($id);
+        }
+
+        return redirect()->to(base_url('pengembalian'))
+            ->with('success', 'Data dihapus');
+    }
+
     public function edit($id)
     {
-        $data['kembali'] = $this->pengembalian->find($id);
+        $model = new PengembalianModel();
+
+        $data['kembali'] = $model->find($id);
+
+        if (!$data['kembali']) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException('Data tidak ditemukan');
+        }
+
         return view('pengembalian/edit', $data);
     }
 
     public function update($id)
     {
-        $this->pengembalian->update($id, [
-            'id_peminjaman' => $this->request->getPost('id_peminjaman'),
-            'tanggal_dikembalikan' => $this->request->getPost('tanggal_dikembalikan'),
-            'denda' => $this->request->getPost('denda')
+        $model = new PengembalianModel();
+
+        $model->update($id, [
+            'tanggal_dikembalikan' => $this->request->getPost('tanggal_dikembalikan')
         ]);
 
-        return redirect()->to('/pengembalian');
-    }
-
-    // ================= DELETE =================
-    public function delete($id)
-    {
-        $this->pengembalian->delete($id);
-        return redirect()->to('/pengembalian');
+        return redirect()->to(base_url('pengembalian'))
+            ->with('success', 'Data diupdate');
     }
 }

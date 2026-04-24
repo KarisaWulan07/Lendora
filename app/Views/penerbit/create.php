@@ -9,9 +9,6 @@
     <input type="text" name="nama_penerbit" required>
     <br><br>
 
-    <label>Alamat</label><br>
-    <textarea name="alamat"></textarea>
-    <br><br>
 
     <button type="submit">Simpan</button>
 

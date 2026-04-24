@@ -80,7 +80,13 @@
 
 <br>
 
-<a href="<?= base_url('buku') ?>">Kembali</a>
+<?php if (session()->get('role') == 'admin'): ?>
+    <a href="<?= base_url('buku') ?>">⬅ Kembali</a>
+    
+<?php else: ?>
+    <a href="<?= base_url('peminjaman/create') ?>">⬅ Kembali</a>
+<?php endif; ?>
+</a>
 <a href="<?= base_url('buku/wa/' . $buku['id_buku']) ?>" target="_blank">Kirim WA</a>
 
 <?= $this->endSection() ?>

@@ -1,73 +1,43 @@
-<h3 style="text-align:center;">Laporan Peminjaman</h3>
-<p style="text-align:center;">
-    Tanggal Cetak: <?= date('d-m-Y') ?>
-</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Struk Peminjaman</title>
+</head>
+<body onload="window.print()">
 
-<table border="1" width="100%" cellpadding="5" cellspacing="0">
-    <tr>
-        <th>No</th>
-        <th>NIS</th>
-        <th>No HP</th>
-        <th>Petugas</th>
-        <th>Buku</th> <!-- 🔥 TAMBAH -->
-        <th>Tanggal Pinjam</th>
-        <th>Tanggal Kembali</th>
-        <th>Status</th>
-    </tr>
+<h3>📚 STRUK PEMINJAMAN</h3>
+<hr>
 
-    <?php $no = 1; ?>
-    <?php foreach ($peminjaman as $p): ?>
-    <tr>
-        <td><?= $no++ ?></td>
-        <td><?= $p['nis'] ?></td>
-        <td><?= $p['no_hp'] ?></td>
-        <td><?= $p['nama_petugas'] ?></td>
+<p>ID: <?= $peminjaman['id_peminjaman'] ?></p>
+<p>Nama: <?= $peminjaman['nama_anggota'] ?></p>
+<p>Petugas: <?= $peminjaman['nama_petugas'] ?></p>
+<p>Tanggal Pinjam: <?= $peminjaman['tanggal_pinjam'] ?></p>
+<p>Tanggal Kembali: <?= $peminjaman['tanggal_kembali'] ?></p>
+<p>Status: <?= $peminjaman['status'] ?></p>
 
-        <!-- 🔥 BUKU -->
-        <td>
-            <?php 
-                if (!empty($p['buku'])) {
-                    $buku = explode(',', $p['buku']);
-                    foreach ($buku as $b) {
-                        echo "- " . trim($b) . "<br>";
-                    }
-                } else {
-                    echo '-';
-                }
-            ?>
-        </td>
+<hr>
 
-        <td><?= date('d-m-Y', strtotime($p['tanggal_pinjam'])) ?></td>
+<h4>Detail Buku</h4>
 
-        <td>
-            <?= $p['tanggal_kembali'] 
-                ? date('d-m-Y', strtotime($p['tanggal_kembali'])) 
-                : '-' ?>
-        </td>
+<table border="1" cellpadding="5" cellspacing="0">
+<tr>
+    <th>No</th>
+    <th>Judul</th>
+    <th>Jumlah</th>
+</tr>
 
-        <!-- 🔥 STATUS -->
-        <td>
-            <?php if ($p['status'] == 'dipinjam') : ?>
-                Dipinjam
-            <?php elseif ($p['status'] == 'dikembalikan') : ?>
-                Dikembalikan
-            <?php elseif ($p['status'] == 'terlambat') : ?>
-                Terlambat
-            <?php else : ?>
-                -
-            <?php endif; ?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
+<?php $no=1; foreach($detail as $d): ?>
+<tr>
+    <td><?= $no++ ?></td>
+    <td><?= $d['judul'] ?></td>
+    <td><?= $d['jumlah'] ?></td>
+</tr>
+<?php endforeach; ?>
+
 </table>
 
-<br><br>
+<br>
+<p>Terima kasih 🙏</p>
 
-<p style="text-align:right;">
-    Mengetahui,<br><br><br>
-    ____________________
-</p>
-
-<script>
-    window.print();
-</script>
+</body>
+</html>

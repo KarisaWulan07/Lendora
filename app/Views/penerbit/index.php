@@ -10,6 +10,7 @@
 <form method="get" action="<?= base_url('penerbit') ?>">
     <input type="text" name="keyword" placeholder="Cari penerbit..." value="<?= $_GET['keyword'] ?? '' ?>">
     <button type="submit">Cari</button>
+       <a href="<?= base_url('penulis') ?>">Reset</a>
 </form>
 
 <br>
@@ -18,7 +19,6 @@
     <tr>
         <th>No</th>
         <th>Nama Penerbit</th>
-        <th>Alamat</th>
         <th>Aksi</th>
     </tr>
 
@@ -26,7 +26,7 @@
     <tr>
         <td><?= $no++ ?></td>
         <td><?= $row['nama_penerbit'] ?></td>
-        <td><?= $row['alamat'] ?></td>
+    
         <td>
             <a href="<?= base_url('penerbit/edit/' . $row['id_penerbit']) ?>">Edit</a>
             |

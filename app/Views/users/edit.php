@@ -46,7 +46,7 @@
                     <p>Foto sekarang:</p>
 
                     <?php if ($user['foto']): ?>
-                        <img src="<?= base_url('uploads/users/' . $user['foto']) ?>" width="80">
+                        <img src="<?= base_url('uploads/users/' . $user['foto']) ?>" width="100">
                     <?php else: ?>
                         <span>-</span>
                     <?php endif; ?>
