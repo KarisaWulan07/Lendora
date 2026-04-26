@@ -85,15 +85,6 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Role</label>
-                <select name="role" class="form-select">
-                    <option value="admin" <?= $user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
-                    <option value="petugas" <?= $user['role'] == 'petugas' ? 'selected' : '' ?>>Petugas</option>
-                    <option value="anggota" <?= $user['role'] == 'anggota' ? 'selected' : '' ?>>Anggota</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Foto Profil</label>
                 <input type="file" name="foto" class="form-control">
 

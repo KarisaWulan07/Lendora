@@ -130,8 +130,8 @@ body {
     <!-- HEADER -->
     <div class="dash-header">
         <div>
-            <h3 class="fw-bold mb-0">Dashboard</h3>
-            <small class="text-muted">Sistem Peminjaman Buku</small>
+            <h3 class="fw-bold mb-0">Selamat Datang di Dashboard Perpustakaan</h3>
+            <small class="text-muted">Temukan, kelola, dan pantau semua aktivitas dengan mudah</small>
         </div>
 
         <div class="user-box">
