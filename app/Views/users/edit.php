@@ -1,64 +1,130 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<div>
-    <div>
-        <div>
-            <h4>Edit User</h4>
-        </div>
+<style>
+/* WRAPPER */
+.form-box {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 25px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-        <div>
+/* TITLE */
+.form-title {
+    font-weight: 600;
+    color: #0B2E59;
+    margin-bottom: 15px;
+}
 
-            <form action="<?= base_url('users/update/' . $user['id']) ?>" method="post" enctype="multipart/form-data">
+/* INPUT */
+.form-control,
+.form-select {
+    border-radius: 10px;
+}
 
-                <div>
-                    <label>Nama Lengkap</label><br>
-                    <input type="text" name="nama" value="<?= $user['nama'] ?>" required>
-                </div>
+/* FOTO */
+.preview-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-top: 10px;
+}
 
-                <div>
-                    <label>Email</label><br>
-                    <input type="text" name="email" value="<?= $user['email'] ?>" required>
-                </div>
+/* BUTTON */
+.btn-primary {
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0B2E59, #1B7F9F);
+}
 
-                <div>
-                    <label>Username</label><br>
-                    <input type="text" name="username" value="<?= $user['username'] ?>" required>
-                </div>
+.btn-primary:hover {
+    opacity: 0.9;
+}
+</style>
 
-                <div>
-                    <label>Password (kosongkan jika tidak diubah)</label><br>
-                    <input type="password" name="password">
-                </div>
+<div class="container-fluid py-3">
 
-                <div>
-                    <label>Role</label><br>
-                    <select name="role">
-                        <option value="admin" <?= $user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
-                        <option value="petugas" <?= $user['role'] == 'petugas' ? 'selected' : '' ?>>Petugas</option>
-                        <option value="anggota" <?= $user['role'] == 'anggota' ? 'selected' : '' ?>>Anggota</option>
-                    </select>
-                </div>
+    <div class="form-box">
 
-                <div>
-                    <label>Foto</label><br>
-                    <input type="file" name="foto"><br>
-                    <p>Foto sekarang:</p>
+        <!-- TITLE -->
+        <h5 class="form-title">
+            <i class="bi bi-pencil-square"></i> Edit User
+        </h5>
+
+        <!-- FORM -->
+        <form action="<?= base_url('users/update/' . $user['id']) ?>" method="post" enctype="multipart/form-data">
+            <?= csrf_field() ?>
+
+            <div class="mb-3">
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" name="nama" class="form-control"
+                       value="<?= $user['nama'] ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control"
+                       value="<?= $user['email'] ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-control"
+                       value="<?= $user['username'] ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control">
+                <small class="text-muted">Kosongkan jika tidak ingin diubah</small>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select">
+                    <option value="admin" <?= $user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
+                    <option value="petugas" <?= $user['role'] == 'petugas' ? 'selected' : '' ?>>Petugas</option>
+                    <option value="anggota" <?= $user['role'] == 'anggota' ? 'selected' : '' ?>>Anggota</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Foto Profil</label>
+                <input type="file" name="foto" class="form-control">
+
+                <div class="mt-2">
+                    <small class="text-muted">Foto saat ini:</small><br>
 
                     <?php if ($user['foto']): ?>
-                        <img src="<?= base_url('uploads/users/' . $user['foto']) ?>" width="100">
+                        <img src="<?= base_url('uploads/users/' . $user['foto']) ?>" class="preview-img">
                     <?php else: ?>
-                        <span>-</span>
+                        <span class="text-muted">Tidak ada foto</span>
                     <?php endif; ?>
                 </div>
+            </div>
 
-                <br>
-                <button type="submit">Update</button>
-                <a href="<?= base_url('users') ?>">Kembali</a>
+            <!-- ACTION -->
+            <div class="d-flex justify-content-between mt-3">
 
-            </form>
-        </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Update
+                </button>
+
+                <a href="<?= base_url('users') ?>" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Kembali
+                </a>
+
+            </div>
+
+        </form>
+
     </div>
+
 </div>
 
 <?= $this->endSection() ?>

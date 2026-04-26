@@ -34,7 +34,15 @@ $routes->get('/logout', 'Auth::logout');
 // ================= DASHBOARD (WAJIB LOGIN) =================
 $routes->get('/', 'Home::index', $authFilter);
 $routes->get('/dashboard', 'Home::index', $authFilter);
+$routes->group('', function($routes) {
+    $routes->get('/', 'Dashboard::index');
 
+    $routes->get('rak', 'Rak::index');
+    $routes->get('buku', 'Buku::index');
+    $routes->get('peminjaman', 'Peminjaman::index');
+    $routes->get('pengembalian', 'Pengembalian::index');
+    $routes->get('denda', 'Denda::index');
+});
 // USERS
 // ========================
 $routes->get('/users/create', 'Users::create');
@@ -50,6 +58,7 @@ $routes->get('users/print', 'Users::print', $allRole);
 $routes->get('users/wa/(:num)', 'Users::wa/$1', $allRole);
 
 
+
 // ========================
 // BUKU
 // ========================
@@ -63,7 +72,6 @@ $routes->get('buku/delete/(:num)', 'Buku::delete/$1');
 $routes->get('buku/print', 'Buku::print');
 $routes->get('buku/wa/(:num)', 'Buku::wa/$1');
 
-
 // ========================
 // KATEGORI
 // ========================
@@ -73,7 +81,6 @@ $routes->post('kategori/store', 'Kategori::store');
 $routes->get('kategori/edit/(:num)', 'Kategori::edit/$1');
 $routes->post('kategori/update/(:num)', 'Kategori::update/$1');
 $routes->get('kategori/delete/(:num)', 'Kategori::delete/$1');
-
 
 // ========================
 // PENULIS
@@ -113,6 +120,7 @@ $routes->get('peminjaman/print/(:num)', 'Peminjaman::print/$1');
 $routes->get('/peminjaman/addCart/(:num)', 'Peminjaman::addCart/$1');
 $routes->get('/peminjaman/removeCart/(:num)', 'Peminjaman::removeCart/$1');
 $routes->get('peminjaman/wa/(:num)', 'Peminjaman::wa/$1');
+$routes->get('/peminjaman/setujui/(:num)', 'Peminjaman::setujui/$1');
 
 // =====================
 // TAMBAHAN
@@ -174,3 +182,4 @@ $routes->group('denda', function($routes){
 $routes->get('denda/verifikasi/(:num)', 'Denda::verifikasi/$1');
 $routes->get('denda/qris/(:num)', 'Denda::qris/$1');
 $routes->post('denda/konfirmasiBayar', 'Denda::konfirmasiBayar');
+$routes->post('denda/prosesCash', 'Denda::prosesCash');

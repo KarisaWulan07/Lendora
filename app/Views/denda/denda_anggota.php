@@ -1,85 +1,214 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>Data Denda Saya</h2>
+<style>
+:root {
+    --dark: #0B2E59;
+    --mid: #0F4C75;
+    --primary: #1B7F9F;
+}
 
-<?php if (session()->getFlashdata('success')) : ?>
-    <p style="color:green;"><?= session()->getFlashdata('success') ?></p>
-<?php endif; ?>
+/* CONTAINER */
+.page-box {
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
 
-<?php if (session()->getFlashdata('error')) : ?>
-    <p style="color:red;"><?= session()->getFlashdata('error') ?></p>
-<?php endif; ?>
+/* TITLE */
+.page-title {
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 15px;
+}
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>No</th>
-        <th>Buku</th>
-        <th>Jumlah Denda</th>
-        <th>Status</th>
-        <th>Aksi</th>
-    </tr>
+/* TABLE */
+.table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
 
-    <?php $no = 1; foreach ($denda as $d): ?>
-    <tr>
-        <td><?= $no++ ?></td>
-        <td><?= $d['judul_buku'] ?? '-' ?></td>
-        <td>Rp <?= number_format($d['jumlah_denda']) ?></td>
+.table-modern th {
+    background: linear-gradient(135deg, var(--dark), var(--mid));
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
 
-        <!-- STATUS -->
-        <td>
-            <?php if ($d['status'] == 'belum') : ?>
-                <span style="color:red;">Belum Bayar</span>
+.table-modern td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+    vertical-align: top;
+}
 
-            <?php elseif ($d['status'] == 'menunggu') : ?>
-                <span style="color:orange;">Menunggu Verifikasi</span>
+.table-modern tr:hover {
+    background: #f8fafc;
+}
 
-            <?php elseif ($d['status'] == 'lunas') : ?>
-                <span style="color:green;">Lunas</span>
+/* STATUS */
+.badge-red { color: red; font-weight: 600; }
+.badge-orange { color: orange; font-weight: 600; }
+.badge-green { color: green; font-weight: 600; }
 
-            <?php elseif ($d['status'] == 'ditolak') : ?>
-                <span style="color:red;">Ditolak</span>
-            <?php endif; ?>
-        </td>
+/* CARD QR */
+.qr-box {
+    margin-top: 10px;
+}
 
-        <!-- AKSI -->
-        <td>
-            <?php if ($d['status'] == 'belum' || $d['status'] == 'ditolak') : ?>
-                
-                <p><b>Bayar via QRIS</b></p>
+.qr-box img {
+    border-radius: 10px;
+    margin-top: 5px;
+}
 
-                <!-- QR AUTO -->
-                <img src="<?= base_url('qr/qr_' . $d['id_denda'] . '.png') ?>" width="120">
+/* BUTTON */
+.btn-upload {
+    margin-top: 10px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--dark), var(--mid));
+    color: #fff;
+    font-size: 13px;
+}
 
-                <!-- FORM UPLOAD -->
-                <form action="<?= base_url('denda/konfirmasi') ?>" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="id_denda" value="<?= $d['id_denda'] ?>">
+.btn-upload:hover {
+    opacity: 0.9;
+}
 
-                    <p>Upload Bukti:</p>
-                    <input type="file" name="bukti" required>
+/* LINK */
+.link {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 13px;
+}
 
-                    <br><br>
-                    <button type="submit">✔ Kirim Bukti</button>
-                </form>
+.link:hover {
+    text-decoration: underline;
+}
+</style>
 
-            <?php elseif ($d['status'] == 'menunggu') : ?>
+<div class="container py-3">
 
-                <p>⏳ Menunggu verifikasi admin</p>
+    <div class="page-box">
 
-                <?php if (!empty($d['bukti_pembayaran'])) : ?>
-                    <a href="<?= base_url('uploads/bukti/' . $d['bukti_pembayaran']) ?>" target="_blank">
-                        Lihat Bukti
-                    </a>
-                <?php endif; ?>
+        <h3 class="page-title">
+            <i class="bi bi-wallet2"></i> Data Denda Saya
+        </h3>
 
-            <?php elseif ($d['status'] == 'lunas') : ?>
+        <!-- FLASH -->
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success">
+                <?= session()->getFlashdata('success') ?>
+            </div>
+        <?php endif; ?>
 
-                <p>✔ Pembayaran selesai</p>
+        <?php if (session()->getFlashdata('error')): ?>
+            <div class="alert alert-danger">
+                <?= session()->getFlashdata('error') ?>
+            </div>
+        <?php endif; ?>
 
-            <?php endif; ?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-</table>
+        <!-- TABLE -->
+        <table class="table-modern">
+
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Buku</th>
+                    <th>Jumlah Denda</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            <?php $no = 1; foreach ($denda as $d): ?>
+            <tr>
+
+                <td><?= $no++ ?></td>
+                <td><?= $d['judul_buku'] ?? '-' ?></td>
+
+                <td>
+                    Rp <?= number_format($d['jumlah_denda'],0,',','.') ?>
+                </td>
+
+                <!-- STATUS -->
+                <td>
+                    <?php if ($d['status'] == 'belum'): ?>
+                        <span class="badge-red">Belum Bayar</span>
+
+                    <?php elseif ($d['status'] == 'menunggu'): ?>
+                        <span class="badge-orange">Menunggu</span>
+
+                    <?php elseif ($d['status'] == 'lunas'): ?>
+                        <span class="badge-green">Lunas</span>
+
+                    <?php elseif ($d['status'] == 'ditolak'): ?>
+                        <span class="badge-red">Ditolak</span>
+                    <?php endif; ?>
+                </td>
+
+                <!-- AKSI -->
+                <td>
+
+                    <?php if ($d['status'] == 'belum' || $d['status'] == 'ditolak'): ?>
+
+                        <div class="qr-box">
+                            <b>Bayar via QRIS</b><br>
+
+                            <img src="<?= base_url('qr/qr_' . $d['id_denda'] . '.png') ?>"
+                                 width="120">
+                        </div>
+
+                        <form action="<?= base_url('denda/konfirmasi') ?>"
+                              method="post"
+                              enctype="multipart/form-data">
+
+                            <input type="hidden" name="id_denda"
+                                   value="<?= $d['id_denda'] ?>">
+
+                            <input type="file" name="bukti" class="form-control mt-2" required>
+
+                            <button type="submit" class="btn-upload">
+                                ✔ Kirim Bukti
+                            </button>
+
+                        </form>
+
+                    <?php elseif ($d['status'] == 'menunggu'): ?>
+
+                        <p>⏳ Menunggu verifikasi admin</p>
+
+                        <?php if (!empty($d['bukti_pembayaran'])): ?>
+                            <a class="link"
+                               target="_blank"
+                               href="<?= base_url('uploads/bukti/' . $d['bukti_pembayaran']) ?>">
+                               Lihat Bukti
+                            </a>
+                        <?php endif; ?>
+
+                    <?php elseif ($d['status'] == 'lunas'): ?>
+
+                        <span class="badge-green">✔ Pembayaran selesai</span>
+
+                    <?php endif; ?>
+
+                </td>
+
+            </tr>
+            <?php endforeach; ?>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
 
 <?= $this->endSection() ?>

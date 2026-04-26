@@ -10,36 +10,43 @@ use App\Models\DendaModel;
 
 class Pengembalian extends BaseController
 {
-   public function index()
-{
-    $model = new PengembalianModel();
+    public function index()
+    {
+        $model = new PengembalianModel();
 
-    $search = trim($this->request->getGet('search') ?? '');
+        $search = trim($this->request->getGet('search') ?? '');
 
-    $builder = $model
-        ->select('
-            pengembalian.*,
-            peminjaman.id_peminjaman,
-            COALESCE(denda.jumlah_denda, 0) as jumlah_denda,
-            COALESCE(denda.status_denda, "-") as status_denda
-        ')
-        ->join('peminjaman', 'peminjaman.id_peminjaman = pengembalian.id_peminjaman')
+        $builder = $model
+            ->select('
+                pengembalian.id_pengembalian,
+                pengembalian.id_peminjaman,
+                pengembalian.tanggal_dikembalikan,
+                pengembalian.denda,
 
-        // 🔥 INI YANG BENAR
-        ->join('denda', 'denda.id_pengembalian = pengembalian.id_pengembalian', 'left');
+                users.nama AS nama_anggota,
 
-    // 🔍 SEARCH (tetap dipakai)
-    if ($search !== '') {
-        $builder->groupStart()
-            ->like('pengembalian.id_pengembalian', $search)
-            ->orLike('peminjaman.id_peminjaman', $search)
-        ->groupEnd();
+                COALESCE(denda.jumlah_denda, 0) as jumlah_denda,
+                COALESCE(denda.status_denda, "-") as status_denda
+            ')
+                ->join('peminjaman', 'peminjaman.id_peminjaman = pengembalian.id_peminjaman', 'left')
+                ->join('anggota', 'anggota.id_anggota = peminjaman.id_anggota', 'left')
+                ->join('users', 'users.id = peminjaman.id_anggota', 'left')
+            ->join('denda', 'denda.id_pengembalian = pengembalian.id_pengembalian', 'left');
+
+        // 🔥 SEARCH (tetap)
+        if ($search !== '') {
+            $builder->groupStart()
+                ->like('pengembalian.id_pengembalian', $search)
+                ->orLike('peminjaman.id_peminjaman', $search)
+                ->orLike('users.nama', $search)
+            ->groupEnd();
+        }
+
+        $data['pengembalian'] = $builder->findAll();
+
+        return view('pengembalian/index', $data);
     }
 
-    $data['pengembalian'] = $builder->findAll();
-
-    return view('pengembalian/index', $data);
-}
     public function create()
     {
         $peminjaman = new PeminjamanModel();
@@ -52,78 +59,91 @@ class Pengembalian extends BaseController
     }
 
     public function store()
-{
-    $pengembalian = new PengembalianModel();
-    $peminjaman = new PeminjamanModel();
-    $detail = new DetailPeminjamanModel();
-    $buku = new BukuModel();
-    $dendaModel = new DendaModel();
+    {
+        $pengembalian = new PengembalianModel();
+        $peminjaman   = new PeminjamanModel();
+        $detail       = new DetailPeminjamanModel();
+        $buku         = new BukuModel();
+        $dendaModel   = new DendaModel();
 
-    $id_peminjaman = $this->request->getPost('id_peminjaman');
+        $id_peminjaman = $this->request->getPost('id_peminjaman');
 
-    $pinjam = $peminjaman->find($id_peminjaman);
+        if (!$id_peminjaman) {
+            return redirect()->back()->with('error', 'Peminjaman tidak dipilih');
+        }
 
-    if (!$pinjam) {
-        return redirect()->back()->with('error', 'Data peminjaman tidak ditemukan');
-    }
+        $pinjam = $peminjaman->find($id_peminjaman);
 
-    $today = date('Y-m-d');
+        if (!$pinjam) {
+            return redirect()->back()->with('error', 'Data peminjaman tidak ditemukan');
+        }
 
-    // 🔥 HITUNG DENDA
-    $denda = 0;
-    if ($today > $pinjam['tanggal_kembali']) {
-        $selisih = (strtotime($today) - strtotime($pinjam['tanggal_kembali'])) / 86400;
-        $denda = $selisih * 1000;
-    }
+        $today = date('Y-m-d');
 
-    // 🔥 SIMPAN PENGEMBALIAN
-    $pengembalian->insert([
-        'id_peminjaman' => $id_peminjaman,
-        'tanggal_dikembalikan' => $today
-    ]);
+        // 🔥 HITUNG DENDA
+        $denda = 0;
+        if ($today > $pinjam['tanggal_kembali']) {
+            $selisih = (strtotime($today) - strtotime($pinjam['tanggal_kembali'])) / 86400;
+            $denda = $selisih * 1000;
+        }
 
-    // ambil ID pengembalian terbaru
-    $id_pengembalian = $pengembalian->insertID();
-
-    // 🔥 SIMPAN DENDA (FIX DI SINI)
-    if ($denda > 0) {
-        $dendaModel->insert([
-            'id_pengembalian' => $id_pengembalian,
-            'jumlah_denda' => $denda,
-            'status_denda' => 'belum', // ✅ SUDAH BENAR
-            'metode_pembayaran' => null
+        // 🔥 SIMPAN PENGEMBALIAN
+        $insert = $pengembalian->insert([
+            'id_peminjaman' => $id_peminjaman,
+            'tanggal_dikembalikan' => $today,
+            'denda' => $denda
         ]);
-    }
 
-    // 🔥 UPDATE STATUS PEMINJAMAN
-    $peminjaman->update($id_peminjaman, [
-        'status' => 'dikembalikan'
-    ]);
+        if (!$insert) {
+            return redirect()->back()->with('error', json_encode($pengembalian->errors()));
+        }
 
-    // 🔥 KEMBALIKAN STOK BUKU
-    $list = $detail->where('id_peminjaman', $id_peminjaman)->findAll();
+        $id_pengembalian = $pengembalian->getInsertID();
 
-    foreach ($list as $d) {
-        $b = $buku->find($d['id_buku']);
-
-        if ($b) {
-            $buku->update($d['id_buku'], [
-                'tersedia' => $b['tersedia'] + $d['jumlah']
+        // 🔥 SIMPAN DENDA
+        if ($denda > 0) {
+            $dendaModel->insert([
+                'id_pengembalian' => $id_pengembalian,
+                'jumlah_denda' => $denda,
+                'status_denda' => 'belum',
+                'metode_pembayaran' => null
             ]);
         }
+
+        // 🔥 UPDATE STATUS PEMINJAMAN
+        $peminjaman->update($id_peminjaman, [
+            'status' => 'dikembalikan'
+        ]);
+
+        // 🔥 KEMBALIKAN STOK BUKU
+        $list = $detail->where('id_peminjaman', $id_peminjaman)->findAll();
+
+        foreach ($list as $d) {
+            $b = $buku->find($d['id_buku']);
+
+            if ($b) {
+                $buku->update($d['id_buku'], [
+                    'tersedia' => $b['tersedia'] + $d['jumlah']
+                ]);
+            }
+        }
+
+        return redirect()->to(base_url('pengembalian'))
+            ->with('success', 'Berhasil dikembalikan');
     }
 
-    return redirect()->to(base_url('pengembalian'))
-        ->with('success', 'Buku berhasil dikembalikan');
-}
     public function delete($id)
     {
         $pengembalian = new PengembalianModel();
-        $peminjaman = new PeminjamanModel();
+        $peminjaman   = new PeminjamanModel();
+        $dendaModel   = new DendaModel();
 
         $data = $pengembalian->find($id);
 
         if ($data) {
+
+            $dendaModel->where('id_pengembalian', $id)->delete();
+
             $peminjaman->update($data['id_peminjaman'], [
                 'status' => 'dipinjam'
             ]);

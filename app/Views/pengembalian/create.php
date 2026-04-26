@@ -1,68 +1,110 @@
-<?= $this->extend('layouts/main') ?> 
+<?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>Pengembalian Buku</h2>
+<style>
+.box {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-<?php if (session()->getFlashdata('error')) : ?>
-    <p style="color:red"><?= session()->getFlashdata('error') ?></p>
-<?php endif; ?>
+.label {
+    font-size: 13px;
+    color: #666;
+}
 
-<form action="<?= base_url('pengembalian/store') ?>" method="post">
+.form-control, .form-select {
+    border-radius: 10px;
+}
+</style>
 
-    <table cellpadding="8">
+<div class="container-fluid py-3">
 
-        <tr>
-            <td>Peminjaman</td>
-            <td>
-                <input list="peminjaman_list" name="id_peminjaman" required placeholder="Ketik ID Peminjaman">
+    <!-- TITLE -->
+    <h4 class="fw-bold mb-3">
+        <i class="bi bi-arrow-return-left"></i> Pengembalian Buku
+    </h4>
 
-                <datalist id="peminjaman_list">
+    <!-- ERROR -->
+    <?php if (session()->getFlashdata('error')) : ?>
+        <div class="alert alert-danger">
+            <?= session()->getFlashdata('error') ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- FORM BOX -->
+    <div class="box">
+
+        <form action="<?= base_url('pengembalian/store') ?>" method="post">
+
+            <!-- 🔥 FIX: dari datalist → select (biar pasti terkirim) -->
+            <div class="mb-3">
+                <label class="label">Peminjaman</label>
+
+                <select name="id_peminjaman" class="form-select" required>
+                    <option value="">-- Pilih Peminjaman --</option>
+
                     <?php foreach ($peminjaman as $p) : ?>
                         <option value="<?= $p['id_peminjaman'] ?>">
                             ID <?= $p['id_peminjaman'] ?> - <?= $p['tanggal_pinjam'] ?>
                         </option>
                     <?php endforeach; ?>
-                </datalist>
-            </td>
-        </tr>
+                </select>
+            </div>
 
-        <tr>
-            <td>Tanggal Kembali</td>
-            <td>
-                <input type="date" name="tanggal_dikembalikan" value="<?= date('Y-m-d') ?>" readonly>
-            </td>
-        </tr>
+            <!-- TANGGAL -->
+            <div class="mb-3">
+                <label class="label">Tanggal Kembali</label>
 
-        <tr>
-            <td>Denda</td>
-            <td>
-                <!-- 🔥 tetap ada (optional / hanya tampilan) -->
-                <input type="number" name="denda" value="0" readonly>
-                <small>*Denda dihitung otomatis oleh sistem</small>
-            </td>
-        </tr>
+                <input type="date"
+                       name="tanggal_dikembalikan"
+                       class="form-control"
+                       value="<?= date('Y-m-d') ?>"
+                       readonly>
+            </div>
 
-        <!-- 🔥 TAMBAHAN METODE PEMBAYARAN -->
-        <tr>
-            <td>Metode Pembayaran</td>
-            <td>
-                <select name="metode_pembayaran">
+            <!-- DENDA (opsional display saja, tidak dipakai POST) -->
+            <div class="mb-3">
+                <label class="label">Denda</label>
+
+                <input type="number"
+                       class="form-control"
+                       value="0"
+                       readonly>
+
+                <small class="text-muted">
+                    *Denda dihitung otomatis oleh sistem
+                </small>
+            </div>
+
+            <!-- METODE PEMBAYARAN (boleh tetap ada) -->
+            <div class="mb-3">
+                <label class="label">Metode Pembayaran</label>
+
+                <select name="metode_pembayaran" class="form-select">
                     <option value="">-- Bayar nanti --</option>
                     <option value="cash">Cash</option>
                     <option value="qris">QRIS / DANA</option>
                 </select>
-            </td>
-        </tr>
+            </div>
 
-        <tr>
-            <td></td>
-            <td>
-                <button type="submit">Simpan</button>
-            </td>
-        </tr>
+            <!-- BUTTON -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Simpan
+                </button>
 
-    </table>
+                <a href="<?= base_url('peminjaman') ?>" class="btn btn-secondary">
+                    Kembali
+                </a>
+            </div>
 
-</form>
+        </form>
+
+    </div>
+
+</div>
 
 <?= $this->endSection() ?>

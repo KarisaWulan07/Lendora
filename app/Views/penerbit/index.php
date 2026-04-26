@@ -1,42 +1,137 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>Data Penerbit</h2>
+<style>
+.table-box {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-<a href="<?= base_url('penerbit/create') ?>">+ Tambah Penerbit</a>
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
 
-<br><br>
+.table-custom {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-<form method="get" action="<?= base_url('penerbit') ?>">
-    <input type="text" name="keyword" placeholder="Cari penerbit..." value="<?= $_GET['keyword'] ?? '' ?>">
-    <button type="submit">Cari</button>
-       <a href="<?= base_url('penulis') ?>">Reset</a>
-</form>
+.table-custom thead {
+    background: #0B2E59;
+    color: #fff;
+}
 
-<br>
+.table-custom th,
+.table-custom td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
 
-<table border="1" cellpadding="8" cellspacing="0">
-    <tr>
-        <th>No</th>
-        <th>Nama Penerbit</th>
-        <th>Aksi</th>
-    </tr>
+.table-custom tbody tr:hover {
+    background: #f8fafc;
+}
+</style>
 
-    <?php $no = 1; foreach ($penerbit as $row): ?>
-    <tr>
-        <td><?= $no++ ?></td>
-        <td><?= $row['nama_penerbit'] ?></td>
-    
-        <td>
-            <a href="<?= base_url('penerbit/edit/' . $row['id_penerbit']) ?>">Edit</a>
-            |
-            <a href="<?= base_url('penerbit/delete/' . $row['id_penerbit']) ?>"
-               onclick="return confirm('Yakin hapus data?')">
-               Hapus
+<div class="container-fluid py-3">
+
+    <div class="table-box">
+
+        <!-- HEADER -->
+        <div class="table-header">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-building"></i> Data Penerbit
+            </h5>
+
+            <a href="<?= base_url('penerbit/create') ?>" class="btn btn-primary btn-sm">
+                + Tambah
             </a>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-</table>
+        </div>
+
+        <!-- SEARCH -->
+        <form method="get" class="mb-3 d-flex gap-2 flex-wrap">
+
+            <input type="text"
+                   name="keyword"
+                   class="form-control form-control-sm"
+                   style="max-width:300px"
+                   placeholder="Cari penerbit..."
+                   value="<?= esc($_GET['keyword'] ?? '') ?>">
+
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search"></i>
+            </button>
+
+            <a href="<?= base_url('penerbit') ?>" class="btn btn-secondary btn-sm">
+                Reset
+            </a>
+
+        </form>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-custom">
+
+                <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Penerbit</th>
+                    <th>Aksi</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <?php if (!empty($penerbit)): ?>
+                    <?php $no = 1; foreach ($penerbit as $row): ?>
+                        <tr>
+
+                            <td><?= $no++ ?></td>
+
+                            <td class="fw-semibold">
+                                <?= esc($row['nama_penerbit']) ?>
+                            </td>
+
+                            <td class="d-flex justify-content-center gap-2">
+
+                                <a href="<?= base_url('penerbit/edit/' . $row['id_penerbit']) ?>"
+                                   class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <a href="<?= base_url('penerbit/delete/' . $row['id_penerbit']) ?>"
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Yakin hapus data?')">
+                                    Hapus
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    <?php endforeach; ?>
+
+                <?php else: ?>
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            Belum ada data penerbit
+                        </td>
+                    </tr>
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+</div>
 
 <?= $this->endSection() ?>

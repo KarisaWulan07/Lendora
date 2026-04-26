@@ -1,91 +1,210 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<div>
+<style>
+/* WRAPPER */
+.users-box {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-    <h3>Data Users</h3>
+/* HEADER */
+.users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
 
-    <!-- FORM PENCARIAN & FILTER -->
-    <form method="get" action="">
-        <input type="text" name="keyword" placeholder="Cari nama..." value="<?= $_GET['keyword'] ?? '' ?>">
+/* FILTER */
+.filter-box {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
-        <select name="role">
-            <option value="">-- Semua Role --</option>
-            <option value="admin" <?= (($_GET['role'] ?? '') == 'admin') ? 'selected' : '' ?>>Admin</option>
-            <option value="petugas" <?= (($_GET['role'] ?? '') == 'petugas') ? 'selected' : '' ?>>Petugas</option>
-            <option value="anggota" <?= (($_GET['role'] ?? '') == 'anggota') ? 'selected' : '' ?>>Anggota</option>
-        </select>
+.filter-box input,
+.filter-box select {
+    border-radius: 10px;
+}
 
-        <button type="submit">Cari</button>
-        <a href="<?= base_url('users') ?>">Reset</a>
-                <a href="<?= base_url('users/print?' . http_build_query($_GET)) ?>" target="_blank">
-            Print </a>
-                </form>
+/* TABLE */
+.table-custom {
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-    <br>
+.table-custom thead {
+    background: #0B2E59;
+    color: #fff;
+}
 
-    <?php if (session()->getFlashdata('success')): ?>
-        <div><?= session()->getFlashdata('success') ?></div>
-    <?php endif; ?>
+.table-custom tbody tr:hover {
+    background: #f8fafc;
+}
 
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama</th>
-                <th>Email</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Foto</th>
-        
-                <?php if (session()->get('role') == 'admin') : ?>
-                    <th>Aksi</th>
-                <?php endif; ?>
-            </tr>
-        </thead>
+/* FOTO */
+.user-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 10px;
+}
 
-        <tbody>
-            <?php if (!empty($users)): ?>
-                <?php $no = 1 + (10 * ($pager->getCurrentPage() - 1)); ?>
-                <?php foreach ($users as $u): ?>
+/* ACTION */
+.action-btn a {
+    margin-right: 5px;
+    font-size: 13px;
+}
+</style>
+
+<div class="container-fluid py-3">
+
+    <div class="users-box">
+
+        <!-- HEADER -->
+        <div class="users-header">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-people"></i> Data Users
+            </h5>
+
+            <div>
+                <a href="<?= base_url('users/create') ?>" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus"></i> Tambah
+                </a>
+            </div>
+        </div>
+
+        <!-- FILTER -->
+        <form method="get" class="filter-box mb-3">
+            <input type="text" name="keyword" class="form-control form-control-sm"
+                placeholder="Cari nama..."
+                value="<?= $_GET['keyword'] ?? '' ?>">
+
+            <select name="role" class="form-select form-select-sm">
+                <option value="">Semua Role</option>
+                <option value="admin" <?= (($_GET['role'] ?? '') == 'admin') ? 'selected' : '' ?>>Admin</option>
+                <option value="petugas" <?= (($_GET['role'] ?? '') == 'petugas') ? 'selected' : '' ?>>Petugas</option>
+                <option value="anggota" <?= (($_GET['role'] ?? '') == 'anggota') ? 'selected' : '' ?>>Anggota</option>
+            </select>
+
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search"></i>
+            </button>
+
+            <a href="<?= base_url('users') ?>" class="btn btn-secondary btn-sm">
+                Reset
+            </a>
+
+            <a href="<?= base_url('users/print?' . http_build_query($_GET)) ?>"
+               target="_blank"
+               class="btn btn-success btn-sm">
+                <i class="bi bi-printer"></i>
+            </a>
+        </form>
+
+        <!-- ALERT -->
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success">
+                <?= session()->getFlashdata('success') ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-custom">
+
+                <thead>
                     <tr>
-                        <td><?= $no++ ?></td>
-                        <td><?= $u['nama'] ?></td>
-                        <td><?= $u['email'] ?></td>
-                        <td><?= $u['username'] ?></td>
-                        <td><?= ucfirst($u['role']) ?></td>
-                        <td>
-                            <?php if ($u['foto']): ?>
-                                <img src="<?= base_url('uploads/users/' . $u['foto']) ?>" width="60">
-                            <?php else: ?>
-                                -
-                            <?php endif; ?>
-                        </td>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Foto</th>
 
                         <?php if (session()->get('role') == 'admin') : ?>
-                            <td>
-                                <a href="<?= base_url('users/detail/' . $u['id']) ?>">Detail</a>
-                                <a href="<?= base_url('users/edit/' . $u['id']) ?>">Edit</a>
-                                <a href="<?= base_url('users/wa/' . $u['id']) ?>" target="_blank">Kirim WA</a>
-                                <a href="<?= base_url('users/delete/' . $u['id']) ?>"
-                                    onclick="return confirm('Hapus user ini?')">Hapus</a>
-                            </td>
+                            <th class="text-center">Aksi</th>
                         <?php endif; ?>
                     </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="7">Belum ada data user</td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                </thead>
 
-    <br>
+                <tbody>
+                    <?php if (!empty($users)): ?>
+                        <?php $no = 1 + (10 * ($pager->getCurrentPage() - 1)); ?>
 
-    <!-- PAGINATION -->
-    <div>
-        <?= $pager->links() ?>
+                        <?php foreach ($users as $u): ?>
+                            <tr>
+                                <td><?= $no++ ?></td>
+                                <td><?= $u['nama'] ?></td>
+                                <td><?= $u['email'] ?></td>
+                                <td><?= $u['username'] ?></td>
+
+                                <td>
+                                    <span class="badge bg-primary">
+                                        <?= ucfirst($u['role']) ?>
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <?php if ($u['foto']): ?>
+                                        <img src="<?= base_url('uploads/users/' . $u['foto']) ?>" class="user-img">
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <?php if (session()->get('role') == 'admin') : ?>
+                                    <td class="action-btn text-center">
+
+                                        <a href="<?= base_url('users/detail/' . $u['id']) ?>"
+                                           class="btn btn-info btn-sm">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        <a href="<?= base_url('users/edit/' . $u['id']) ?>"
+                                           class="btn btn-warning btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+
+                                        <a href="<?= base_url('users/wa/' . $u['id']) ?>"
+                                           target="_blank"
+                                           class="btn btn-success btn-sm">
+                                            <i class="bi bi-whatsapp"></i>
+                                        </a>
+
+                                        <a href="<?= base_url('users/delete/' . $u['id']) ?>"
+                                           onclick="return confirm('Hapus user ini?')"
+                                           class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+
+                                    </td>
+                                <?php endif; ?>
+
+                            </tr>
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">
+                                Belum ada data user
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="mt-3">
+            <?= $pager->links() ?>
+        </div>
+
     </div>
 
 </div>

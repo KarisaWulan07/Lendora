@@ -1,50 +1,151 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
-<h3>Data Kategori</h3>
 
-<form method="get">
-    <input type="text" name="keyword" placeholder="Cari kategori..." value="<?= $_GET['keyword'] ?? '' ?>">
-    <button type="submit">Cari</button>
-    <a href="<?= base_url('kategori') ?>">Reset</a>
-</form>
+<style>
+.table-box {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-<br>
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
 
-<a href="<?= base_url('kategori/create') ?>">Tambah Kategori</a>
+.table-custom {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-<?php if (session()->getFlashdata('success')): ?>
-    <div><?= session()->getFlashdata('success') ?></div>
-<?php endif; ?>
+.table-custom thead {
+    background: #0B2E59;
+    color: #fff;
+}
 
-<table border="1" cellpadding="5" cellspacing="0">
-    <tr>
-        <th>No</th>
-        <th>Nama Kategori</th>
-        <th>Aksi</th>
-    </tr>
+.table-custom th,
+.table-custom td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
 
-    <?php if (!empty($kategori)): ?>
-        <?php $no = 1 + (10 * ($pager->getCurrentPage() - 1)); ?>
-        <?php foreach ($kategori as $k): ?>
-            <tr>
-                <td><?= $no++ ?></td>
-                <td><?= $k['nama_kategori'] ?></td>
-                <td>
-                    <a href="<?= base_url('kategori/edit/' . $k['id_kategori']) ?>">Edit</a>
-                    <a href="<?= base_url('kategori/delete/' . $k['id_kategori']) ?>"
-                        onclick="return confirm('Hapus data?')">Hapus</a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <tr>
-            <td colspan="3">Belum ada data</td>
-        </tr>
-    <?php endif; ?>
+.table-custom tbody tr:hover {
+    background: #f8fafc;
+}
+</style>
 
-</table>
+<div class="container-fluid py-3">
 
-<br>
+    <div class="table-box">
 
-<?= $pager->links() ?>
+        <!-- HEADER -->
+        <div class="table-header">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-tags"></i> Data Kategori
+            </h5>
+
+            <a href="<?= base_url('kategori/create') ?>" class="btn btn-primary btn-sm">
+                + Tambah
+            </a>
+        </div>
+
+        <!-- SEARCH -->
+        <form method="get" class="mb-3 d-flex gap-2 flex-wrap">
+
+            <input type="text"
+                   name="keyword"
+                   class="form-control form-control-sm"
+                   style="max-width:300px"
+                   placeholder="Cari kategori..."
+                   value="<?= esc($_GET['keyword'] ?? '') ?>">
+
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search"></i>
+            </button>
+
+            <a href="<?= base_url('kategori') ?>" class="btn btn-secondary btn-sm">
+                Reset
+            </a>
+
+        </form>
+
+        <!-- FLASH -->
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success">
+                <?= session()->getFlashdata('success') ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-custom">
+
+                <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Kategori</th>
+                    <th>Aksi</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <?php if (!empty($kategori)): ?>
+                    <?php $no = 1 + (10 * ($pager->getCurrentPage() - 1)); ?>
+
+                    <?php foreach ($kategori as $k): ?>
+                        <tr>
+
+                            <td><?= $no++ ?></td>
+
+                            <td class="fw-semibold">
+                                <?= esc($k['nama_kategori']) ?>
+                            </td>
+
+                            <td class="d-flex justify-content-center gap-2">
+
+                                <a href="<?= base_url('kategori/edit/' . $k['id_kategori']) ?>"
+                                   class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <a href="<?= base_url('kategori/delete/' . $k['id_kategori']) ?>"
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Hapus data?')">
+                                    Hapus
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    <?php endforeach; ?>
+
+                <?php else: ?>
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            Belum ada data kategori
+                        </td>
+                    </tr>
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="mt-3">
+            <?= $pager->links() ?>
+        </div>
+
+    </div>
+
+</div>
+
 <?= $this->endSection() ?>

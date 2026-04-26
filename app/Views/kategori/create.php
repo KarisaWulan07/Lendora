@@ -1,14 +1,47 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
-<h3>Tambah Kategori</h3>
 
-<form method="post" action="<?= base_url('kategori/store') ?>">
+<div class="container py-4">
 
-    Nama Kategori:<br>
-    <input type="text" name="nama_kategori"><br><br>
+    <!-- HEADER -->
+    <div class="mb-3">
+        <h3 class="fw-bold">
+            <i class="bi bi-tags me-2"></i> Tambah Kategori
+        </h3>
+    </div>
 
-    <button type="submit">Simpan</button>
-    <a href="<?= base_url('kategori') ?>">Kembali</a>
+    <!-- CARD FORM -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
 
-</form>
+            <form method="post" action="<?= base_url('kategori/store') ?>">
+
+                <!-- INPUT -->
+                <div class="mb-3">
+                    <label class="form-label">Nama Kategori</label>
+                    <input type="text"
+                           name="nama_kategori"
+                           class="form-control"
+                           placeholder="Masukkan nama kategori"
+                           required>
+                </div>
+
+                <!-- BUTTON -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Simpan
+                    </button>
+
+                    <a href="<?= base_url('kategori') ?>" class="btn btn-outline-secondary">
+                        Kembali
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
 <?= $this->endSection() ?>

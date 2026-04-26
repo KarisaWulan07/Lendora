@@ -1,63 +1,105 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>PEMBAYARAN DENDA</h2>
+<div class="container py-4">
 
-<div style="max-width:400px;margin:auto;text-align:center;border:2px solid #333;padding:20px;border-radius:10px;">
+    <!-- TITLE -->
+    <div class="text-center mb-4">
+        <h3 class="fw-bold">
+            <i class="bi bi-cash-coin me-2"></i> Pembayaran Denda
+        </h3>
+    </div>
 
-    <h3>Total Bayar</h3>
-    <h1 style="color:red;">
-        Rp <?= number_format($denda['jumlah_denda'],0,',','.') ?>
-    </h1>
+    <!-- CARD -->
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 450px;">
+        <div class="card-body text-center">
 
-    <p>ID Peminjaman: <?= $denda['id_peminjaman'] ?></p>
+            <h5 class="text-muted">Total Bayar</h5>
 
-    <hr>
+            <h2 class="text-danger fw-bold">
+                Rp <?= number_format($denda['jumlah_denda'], 0, ',', '.') ?>
+            </h2>
 
-    <p><b>Scan QRIS / DANA / OVO / GOPAY</b></p>
+            <p class="mb-1">
+                <small>ID Peminjaman: <?= $denda['id_peminjaman'] ?></small>
+            </p>
 
-    <!-- QRIS IMAGE -->
-    <img src="<?= base_url('lendora/uploads/qris/qris.1') ?>" 
-         width="250" 
-         style="margin:10px 0;">
+            <hr>
 
-    <!-- FORM UPLOAD BUKTI -->
-    <form action="<?= base_url('denda/konfirmasiBayar') ?>" 
-          method="post" 
-          enctype="multipart/form-data">
+            <p class="fw-semibold mb-2">
+                Scan QRIS / E-Wallet
+            </p>
 
-        <input type="hidden" name="id_denda" value="<?= $denda['id_denda'] ?>">
-        <input type="hidden" name="metode" value="QRIS">
+            <!-- QR -->
+            <div id="qrcode" class="d-flex justify-content-center my-3"></div>
 
-        <p><b>Upload Bukti Pembayaran</b></p>
+            <small class="text-muted d-block mb-3">
+                Scan menggunakan DANA / OVO / GoPay / Mobile Banking
+            </small>
 
-        <input type="file" name="bukti" accept="image/*" required>
+            <hr>
 
-        <br><br>
+            <!-- FORM -->
+            <h5 class="mb-3">Upload Bukti Pembayaran</h5>
 
-        <!-- PREVIEW GAMBAR -->
-        <img id="preview" width="200" style="display:none;border:1px solid #ccc;margin-bottom:10px;">
+            <form action="<?= base_url('denda/konfirmasiBayar') ?>"
+                  method="post"
+                  enctype="multipart/form-data">
 
-        <br>
+                <input type="hidden" name="id_denda" value="<?= $denda['id_denda'] ?>">
+                <input type="hidden" name="metode" value="QRIS">
 
-        <button type="submit" style="padding:10px 20px;background:green;color:white;border:none;border-radius:5px;">
-            ✔ Saya Sudah Bayar
-        </button>
-<?php if(session()->getFlashdata('error')): ?>
-    <p style="color:red;">
-        <?= session()->getFlashdata('error') ?>
-    </p>
-<?php endif; ?>
-    </form>
+                <input type="file"
+                       name="bukti"
+                       accept="image/*"
+                       class="form-control mb-3"
+                       required>
+
+                <!-- PREVIEW -->
+                <img id="preview"
+                     class="img-thumbnail mb-3"
+                     style="display:none; max-width: 220px;">
+
+                <button type="submit" class="btn btn-success w-100">
+                    ✔ Saya Sudah Bayar
+                </button>
+
+            </form>
+
+            <a href="<?= base_url('denda') ?>" class="btn btn-outline-secondary w-100 mt-2">
+                ← Kembali
+            </a>
+
+            <?php if(session()->getFlashdata('error')): ?>
+                <div class="alert alert-danger mt-3 py-2">
+                    <?= session()->getFlashdata('error') ?>
+                </div>
+            <?php endif; ?>
+
+        </div>
+    </div>
 
 </div>
 
-<!-- SCRIPT PREVIEW GAMBAR -->
+<!-- QR CODE -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+<script>
+const qrText = "Denda ID: <?= $denda['id_denda'] ?> | Total: <?= $denda['jumlah_denda'] ?>";
+
+new QRCode(document.getElementById("qrcode"), {
+    text: qrText,
+    width: 180,
+    height: 180
+});
+</script>
+
+<!-- PREVIEW IMAGE -->
 <script>
 const input = document.querySelector('input[name="bukti"]');
 const preview = document.getElementById('preview');
 
-input.addEventListener('change', function(){
+input.addEventListener('change', function () {
     const file = this.files[0];
     if (file) {
         preview.src = URL.createObjectURL(file);

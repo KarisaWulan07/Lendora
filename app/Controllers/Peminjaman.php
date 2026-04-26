@@ -30,7 +30,7 @@ class Peminjaman extends BaseController
             COALESCE(denda.jumlah_denda, 0) as jumlah_denda
         ')
         ->join('users as anggota', 'anggota.id = peminjaman.id_anggota')
-        ->join('users as petugas', 'petugas.id = peminjaman.id_petugas')
+        ->join('users as petugas', 'petugas.id = peminjaman.id_petugas', 'left')
         ->join('detail_peminjaman', 'detail_peminjaman.id_peminjaman = peminjaman.id_peminjaman', 'left')
         ->join('buku', 'buku.id_buku = detail_peminjaman.id_buku', 'left')
 
@@ -132,7 +132,7 @@ class Peminjaman extends BaseController
     // =====================
     // STORE (FIX FINAL)
     // =====================
-    public function store()
+   public function store()
 {
     if (session()->get('role') != 'anggota') {
         return redirect()->back();
@@ -149,65 +149,66 @@ class Peminjaman extends BaseController
         return redirect()->back()->with('error', 'Pilih buku dulu!');
     }
 
-    $id_petugas = $this->request->getPost('id_petugas');
+    // ==========================
+    // 🔥 BATAS MAKSIMAL 2 BUKU
+    // ==========================
+    $totalBuku = array_sum($cart);
 
-    if (!$id_petugas) {
-        return redirect()->back()->with('error', 'Petugas wajib dipilih!');
+    if ($totalBuku > 2) {
+        return redirect()->back()->with('error', 'Maksimal peminjaman hanya 2 buku!');
     }
 
-    // CEK LIMIT AMAN
-    $builder = $db->table('detail_peminjaman');
-    $builder->select('SUM(detail_peminjaman.jumlah) as total');
-    $builder->join('peminjaman', 'peminjaman.id_peminjaman = detail_peminjaman.id_peminjaman');
-    $builder->where('peminjaman.id_anggota', session()->get('id'));
-    $builder->where('peminjaman.status', 'dipinjam');
+    $db->transStart();
 
-    $totalLama = $builder->get()->getRowArray();
-    $totalLama = $totalLama['total'] ?? 0;
+    // INSERT PEMINJAMAN
+    $peminjaman->insert([
+        'id_anggota' => session()->get('id'),
+        'id_petugas' => null,
+        'tanggal_pinjam' => null,
+        'tanggal_kembali' => null,
+        'status' => 'menunggu'
+    ]);
 
-    if (($totalLama + array_sum($cart)) > 2) {
-        return redirect()->back()->with('error', 'Maksimal 2 buku');
+    $id = $peminjaman->getInsertID();
+
+    if (!$id) {
+        $db->transRollback();
+        return redirect()->back()->with('error', 'Gagal simpan peminjaman');
     }
 
-    $db->transBegin();
+    foreach ($cart as $id_buku => $qty) {
 
-    try {
+        $b = $bukuModel->find($id_buku);
 
-        $id = $peminjaman->insert([
-            'id_anggota' => session()->get('id'),
-            'id_petugas' => $id_petugas,
-            'tanggal_pinjam' => date('Y-m-d'),
-            'tanggal_kembali' => date('Y-m-d', strtotime('+7 days')),
-            'status' => 'dipinjam'
-        ]);
+        if (!$b) continue;
 
-        foreach ($cart as $id_buku => $qty) {
-
-            $b = $bukuModel->find($id_buku);
-
-            if ($b) {
-                $detail->insert([
-                    'id_peminjaman' => $id,
-                    'id_buku' => $id_buku,
-                    'jumlah' => $qty
-                ]);
-
-                $bukuModel->update($id_buku, [
-                    'tersedia' => $b['tersedia'] - $qty
-                ]);
-            }
+        // CEK STOK
+        if ($b['tersedia'] < $qty) {
+            $db->transRollback();
+            return redirect()->back()->with('error', 'Stok buku tidak cukup');
         }
 
-        $db->transCommit();
-        session()->remove('cart');
+        $detail->insert([
+            'id_peminjaman' => $id,
+            'id_buku' => $id_buku,
+            'jumlah' => $qty
+        ]);
 
-        return redirect()->to(base_url('peminjaman'))
-            ->with('success', 'Peminjaman berhasil');
-
-    } catch (\Exception $e) {
-        $db->transRollback();
-        return redirect()->back()->with('error', $e->getMessage());
+        $bukuModel->update($id_buku, [
+            'tersedia' => $b['tersedia'] - $qty
+        ]);
     }
+
+    $db->transComplete();
+
+    if ($db->transStatus() === false) {
+        return redirect()->back()->with('error', 'Transaksi gagal');
+    }
+
+    session()->remove('cart');
+
+    return redirect()->to(base_url('peminjaman'))
+        ->with('success', 'Peminjaman berhasil');
 }
      // =====================
     // DETAIL
@@ -351,41 +352,69 @@ public function delete($id)
 {
     $peminjaman = new PeminjamanModel();
     $detail = new DetailPeminjamanModel();
+    $pengembalian = new \App\Models\PengembalianModel();
+    $denda = new \App\Models\DendaModel();
     $bukuModel = new BukuModel();
-    $db = \Config\Database::connect();
 
-    $db->transBegin();
+    //  ambil data pengembalian
+    $pengembalianData = $pengembalian
+        ->where('id_peminjaman', $id)
+        ->findAll();
 
-    try {
-
-        // 🔥 ambil detail dulu (untuk balikin stok buku)
-        $details = $detail->where('id_peminjaman', $id)->findAll();
-
-        foreach ($details as $d) {
-            $buku = $bukuModel->find($d['id_buku']);
-
-            if ($buku) {
-                $bukuModel->update($d['id_buku'], [
-                    'tersedia' => $buku['tersedia'] + $d['jumlah']
-                ]);
-            }
-        }
-
-        // 🔥 hapus detail dulu
-        $detail->where('id_peminjaman', $id)->delete();
-
-        // 🔥 baru hapus peminjaman
-        $peminjaman->delete($id);
-
-        $db->transCommit();
-
-        return redirect()->to(base_url('peminjaman'))
-            ->with('success', 'Data berhasil dihapus');
-
-    } catch (\Exception $e) {
-        $db->transRollback();
-        return redirect()->back()->with('error', $e->getMessage());
+    //  hapus denda dulu
+    foreach ($pengembalianData as $p) {
+        $denda->where('id_pengembalian', $p['id_pengembalian'])->delete();
     }
+
+    //  hapus pengembalian
+    $pengembalian->where('id_peminjaman', $id)->delete();
+
+    //  ambil detail untuk balikin stok
+    $details = $detail->where('id_peminjaman', $id)->findAll();
+
+    foreach ($details as $d) {
+        $buku = $bukuModel->find($d['id_buku']);
+
+        if ($buku) {
+            $bukuModel->update($d['id_buku'], [
+                'tersedia' => $buku['tersedia'] + $d['jumlah']
+            ]);
+        }
+    }
+
+    //  hapus detail
+    $detail->where('id_peminjaman', $id)->delete();
+
+    // terakhir hapus peminjaman
+    $peminjaman->delete($id);
+
+    return redirect()->to(base_url('peminjaman'))
+        ->with('success', 'Data berhasil dihapus');
+}
+public function setujui($id)
+{
+    if (!in_array(session()->get('role'), ['admin','petugas'])) {
+        return redirect()->back();
+    }
+
+    $model = new PeminjamanModel();
+
+    $data = $model->find($id);
+
+    if (!$data) {
+        return redirect()->back()->with('error', 'Data tidak ditemukan');
+    }
+
+    //  update saat disetujui
+    $model->update($id, [
+        'status' => 'dipinjam',
+        'tanggal_pinjam' => date('Y-m-d'),
+        'tanggal_kembali' => date('Y-m-d', strtotime('+7 days')),
+        'id_petugas' => session()->get('id') // 🔥 petugas login
+    ]);
+
+    return redirect()->to(base_url('peminjaman'))
+        ->with('success', 'Peminjaman disetujui');
 }
 }
    

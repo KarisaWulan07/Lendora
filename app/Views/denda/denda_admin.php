@@ -1,81 +1,181 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>Manajemen Denda (Admin)</h2>
+<style>
+:root {
+    --dark: #0B2E59;
+    --mid: #0F4C75;
+    --primary: #1B7F9F;
+}
 
-<?php if (session()->getFlashdata('success')) : ?>
-    <p style="color:green;"><?= session()->getFlashdata('success') ?></p>
-<?php endif; ?>
+/* CONTAINER */
+.page-box {
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>No</th>
-        <th>Nama Anggota</th>
-        <th>Buku</th>
-        <th>Jumlah</th>
-        <th>Status</th>
-        <th>Bukti</th>
-        <th>Aksi</th>
-    </tr>
+/* HEADER */
+.page-title {
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 15px;
+}
 
-    <?php $no = 1; foreach ($denda as $d): ?>
-    <tr>
-        <td><?= $no++ ?></td>
-        <td><?= $d['nama_anggota'] ?? '-' ?></td>
-        <td><?= $d['judul_buku'] ?? '-' ?></td>
-        <td>Rp <?= number_format($d['jumlah_denda']) ?></td>
+/* TABLE */
+.table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
 
-        <!-- STATUS -->
-        <td>
-            <?php if ($d['status'] == 'belum') : ?>
-                <span style="color:red;">Belum Bayar</span>
+.table-modern th {
+    background: linear-gradient(135deg, var(--dark), var(--mid));
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
 
-            <?php elseif ($d['status'] == 'menunggu') : ?>
-                <span style="color:orange;">Menunggu Verifikasi</span>
+.table-modern td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
 
-            <?php elseif ($d['status'] == 'lunas') : ?>
-                <span style="color:green;">Lunas</span>
+.table-modern tr:hover {
+    background: #f8fafc;
+}
 
-            <?php elseif ($d['status'] == 'ditolak') : ?>
-                <span style="color:red;">Ditolak</span>
-            <?php endif; ?>
-        </td>
+/* STATUS BADGE */
+.badge-red { color: red; font-weight: 600; }
+.badge-orange { color: orange; font-weight: 600; }
+.badge-green { color: green; font-weight: 600; }
 
-        <!-- BUKTI PEMBAYARAN -->
-        <td>
-            <?php if (!empty($d['bukti_pembayaran'])) : ?>
-               <img src="<?= base_url('uploads/bukti/' . $d['bukti_pembayaran']) ?>" width="80">
-            <?php else : ?>
-                -
-            <?php endif; ?>
-        </td>
+/* ACTION */
+.action a {
+    text-decoration: none;
+    margin: 0 5px;
+    font-size: 13px;
+}
 
-        <!-- AKSI ADMIN -->
-        <td>
-            <?php if ($d['status'] == 'menunggu') : ?>
+.action a:hover {
+    text-decoration: underline;
+}
 
-                <a href="<?= base_url('denda/lunas/' . $d['id_denda']) ?>">
-                    ✔ Verifikasi Lunas
-                </a>
-                |
-                <a href="<?= base_url('denda/tolak/' . $d['id_denda']) ?>">
-                    ❌ Tolak
-                </a>
+.action .approve { color: green; }
+.action .reject { color: red; }
 
-            <?php elseif ($d['status'] == 'belum') : ?>
-                <p>Belum ada pembayaran</p>
+</style>
 
-            <?php elseif ($d['status'] == 'lunas') : ?>
-                <p>✔ Sudah Lunas</p>
+<div class="container py-3">
 
-            <?php elseif ($d['status'] == 'ditolak') : ?>
-                <p style="color:red;">Pembayaran ditolak</p>
+    <div class="page-box">
 
-            <?php endif; ?>
-        </td>
+        <!-- TITLE -->
+        <h3 class="page-title">
+            <i class="bi bi-cash-stack"></i> Manajemen Denda (Admin)
+        </h3>
 
-    </tr>
-    <?php endforeach; ?>
-</table>
+        <!-- SUCCESS -->
+        <?php if (session()->getFlashdata('success')) : ?>
+            <div class="alert alert-success">
+                <?= session()->getFlashdata('success') ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- TABLE -->
+        <table class="table-modern">
+
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Anggota</th>
+                    <th>Buku</th>
+                    <th>Jumlah</th>
+                    <th>Status</th>
+                    <th>Bukti</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            <?php $no = 1; foreach ($denda as $d): ?>
+            <tr>
+
+                <td><?= $no++ ?></td>
+                <td><?= $d['nama_anggota'] ?? '-' ?></td>
+                <td><?= $d['judul_buku'] ?? '-' ?></td>
+
+                <td>
+                    Rp <?= number_format($d['jumlah_denda'],0,',','.') ?>
+                </td>
+
+                <!-- STATUS -->
+                <td>
+                    <?php if ($d['status'] == 'belum'): ?>
+                        <span class="badge-red">Belum Bayar</span>
+
+                    <?php elseif ($d['status'] == 'menunggu'): ?>
+                        <span class="badge-orange">Menunggu</span>
+
+                    <?php elseif ($d['status'] == 'lunas'): ?>
+                        <span class="badge-green">Lunas</span>
+
+                    <?php elseif ($d['status'] == 'ditolak'): ?>
+                        <span class="badge-red">Ditolak</span>
+                    <?php endif; ?>
+                </td>
+
+                <!-- BUKTI -->
+                <td>
+                    <?php if (!empty($d['bukti_pembayaran'])): ?>
+                        <img src="<?= base_url('uploads/bukti/' . $d['bukti_pembayaran']) ?>"
+                             width="70"
+                             style="border-radius:8px;">
+                    <?php else: ?>
+                        -
+                    <?php endif; ?>
+                </td>
+
+                <!-- ACTION -->
+                <td class="action">
+
+                    <?php if ($d['status'] == 'menunggu'): ?>
+                        <a class="approve"
+                           href="<?= base_url('denda/lunas/' . $d['id_denda']) ?>">
+                           ✔ Lunas
+                        </a>
+
+                        |
+                        <a class="reject"
+                           href="<?= base_url('denda/tolak/' . $d['id_denda']) ?>">
+                           ❌ Tolak
+                        </a>
+
+                    <?php elseif ($d['status'] == 'belum'): ?>
+                        <span>Belum bayar</span>
+
+                    <?php elseif ($d['status'] == 'lunas'): ?>
+                        <span class="badge-green">✔ Selesai</span>
+
+                    <?php elseif ($d['status'] == 'ditolak'): ?>
+                        <span class="badge-red">Ditolak</span>
+                    <?php endif; ?>
+
+                </td>
+
+            </tr>
+            <?php endforeach; ?>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
 
 <?= $this->endSection() ?>

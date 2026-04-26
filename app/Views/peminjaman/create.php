@@ -1,79 +1,201 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>Tambah Peminjaman</h2>
+<style>
+/* WRAPPER */
+.box {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
 
-<form action="<?= base_url('peminjaman/store') ?>" method="post">
-<?= csrf_field() ?>
+/* SEARCH */
+.search-box input {
+    border-radius: 10px;
+}
 
-<hr>
+/* GRID BUKU */
+.buku-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+}
 
-<!-- 🔥 PENCARIAN TANPA FORM -->
-<label>Cari Buku</label><br>
-<input type="text" id="search" placeholder="Cari judul...">
+/* CARD BUKU */
+.buku-card {
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: 0.25s;
+}
 
-<hr>
+.buku-card:hover {
+    transform: translateY(-5px);
+}
 
-<h4>Pilih Buku</h4>
+.buku-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
 
-<div style="display:flex;gap:10px;flex-wrap:wrap" id="listBuku">
-<?php foreach($buku as $b): ?>
-<div class="item-buku" style="border:1px solid #ccc;padding:10px;width:180px">
+/* BODY */
+.buku-body {
+    padding: 10px;
+}
 
-    <img src="<?= base_url('uploads/buku/'.$b['cover']) ?>" width="100%">
+.buku-body h6 {
+    font-size: 14px;
+    font-weight: 600;
+}
 
-    <p><b><?= $b['judul'] ?></b></p>
+/* STATUS */
+.badge-stock {
+    font-size: 11px;
+}
 
-    <p>
-        Stok:
-        <?php if ($b['tersedia'] > 0): ?>
-            <?= $b['tersedia'] ?>
-        <?php else: ?>
-            <span style="color:red"><b>Habis</b></span>
-        <?php endif; ?>
-    </p>
+/* CART */
+.cart-box {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 12px;
+}
 
-    <a href="<?= base_url('buku/detail/'.$b['id_buku']) ?>">Detail</a>
+/* BUTTON */
+.btn-primary {
+    border-radius: 10px;
+}
+</style>
 
-    <?php if ($b['tersedia'] > 0): ?>
-        | <a href="<?= base_url('peminjaman/addCart/'.$b['id_buku']) ?>">
-            Pinjam
-          </a>
-    <?php else: ?>
-        | <span style="color:gray">Tidak tersedia</span>
-    <?php endif; ?>
+<div class="container-fluid py-3">
+
+    <h4 class="fw-bold mb-3">
+        <i class="bi bi-journal-plus"></i> Tambah Peminjaman
+    </h4>
+
+    <form action="<?= base_url('peminjaman/store') ?>" method="post">
+        <?= csrf_field() ?>
+
+        <!-- SEARCH -->
+        <div class="box mb-3 search-box">
+            <label class="form-label fw-semibold">Cari Buku</label>
+            <input type="text" id="search" class="form-control" placeholder="Cari judul buku...">
+        </div>
+
+        <!-- LIST BUKU -->
+        <div class="box mb-3">
+            <h6 class="fw-semibold mb-3">Pilih Buku</h6>
+
+            <div class="buku-grid" id="listBuku">
+
+                <?php foreach($buku as $b): ?>
+                    <div class="buku-card item-buku">
+
+                        <!-- COVER -->
+                        <img src="<?= base_url('uploads/buku/'.$b['cover']) ?>">
+
+                        <div class="buku-body">
+
+                            <!-- JUDUL -->
+                            <h6><?= $b['judul'] ?></h6>
+
+                            <!-- STOK -->
+                            <div class="mb-2">
+                                <?php if ($b['tersedia'] > 0): ?>
+                                    <span class="badge bg-success badge-stock">
+                                        Stok: <?= $b['tersedia'] ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="badge bg-danger badge-stock">
+                                        Habis
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- ACTION -->
+                            <div class="d-flex justify-content-between">
+
+                                <a href="<?= base_url('buku/detail/'.$b['id_buku']) ?>"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Detail
+                                </a>
+
+                                <?php if ($b['tersedia'] > 0): ?>
+                                    <a href="<?= base_url('peminjaman/addCart/'.$b['id_buku']) ?>"
+                                       class="btn btn-sm btn-success">
+                                        Pinjam
+                                    </a>
+                                <?php else: ?>
+                                    <button class="btn btn-sm btn-secondary" disabled>
+                                        Tidak tersedia
+                                    </button>
+                                <?php endif; ?>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                <?php endforeach ?>
+
+            </div>
+        </div>
+
+        <!-- CART -->
+        <div class="box mb-3">
+            <h6 class="fw-semibold mb-2">Buku Dipilih</h6>
+
+            <div class="cart-box">
+
+                <?php if (!empty($cart)): ?>
+                    <?php foreach($cart as $b): ?>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+
+                            <div>
+                                <?= $b['judul'] ?>
+                                <span class="badge bg-primary">
+                                    <?= $b['qty'] ?>
+                                </span>
+                            </div>
+
+                            <a href="<?= base_url('peminjaman/removeCart/'.$b['id_buku']) ?>"
+                               class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+
+                        </div>
+                    <?php endforeach ?>
+                <?php else: ?>
+                    <small class="text-muted">Belum ada buku dipilih</small>
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+        <!-- STATUS -->
+        <div class="box mb-3">
+            <b>Status:</b>
+            <span class="text-warning">
+                Menunggu persetujuan petugas
+            </span>
+        </div>
+
+        <!-- SUBMIT -->
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save"></i> Simpan Peminjaman
+            </button>
+        </div>
+
+    </form>
 
 </div>
-<?php endforeach ?>
-</div>
 
-<hr>
-
-<h3>Buku Yang Dipilih</h3>
-
-<?php foreach($cart as $b): ?>
-    <p><?= $b['judul'] ?> (<?= $b['qty'] ?>)</p>
-    <a href="<?= base_url('peminjaman/removeCart/'.$b['id_buku']) ?>">Hapus</a>
-<?php endforeach ?>
-
-<br>
-<hr>
-<label>Petugas</label>
-<select name="id_petugas" required>
-    <option value="">-- pilih petugas --</option>
-    <?php foreach($petugas as $p): ?>
-        <option value="<?= $p['id'] ?>">
-            <?= $p['nama'] ?>
-        </option>
-    <?php endforeach ?>
-</select>
-<br>
-<hr>
-<button type="submit">Simpan Peminjaman</button>
-
-</form>
-
-<!-- 🔥 SEARCH JAVASCRIPT -->
+<!-- SEARCH SCRIPT -->
 <script>
 document.getElementById('search').addEventListener('keyup', function(){
     let keyword = this.value.toLowerCase();

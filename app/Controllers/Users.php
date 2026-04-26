@@ -121,13 +121,20 @@ class Users extends BaseController
     }
 
     // ================= EDIT =================
-    public function edit($id)
-    {
-        $this->checkAdmin();
-        $data['user'] = $this->users->find($id);
-        return view('users/edit', $data);
+public function edit($id = null)
+{
+    if ($id == null) {
+        return redirect()->to('/users');
     }
 
+    $data['user'] = $this->users->find($id);
+
+    if (!$data['user']) {
+        throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound("User tidak ditemukan");
+    }
+
+    return view('users/edit', $data);
+}
     // ================= UPDATE =================
     public function update($id)
     {
@@ -235,4 +242,5 @@ class Users extends BaseController
 
         return redirect()->to($url);
     }
+
 }

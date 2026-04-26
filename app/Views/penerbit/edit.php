@@ -1,18 +1,41 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
-<h2>Edit Penerbit</h2>
+<div class="container py-4">
 
-<form action="<?= base_url('penerbit/update/' . $penerbit['id_penerbit']) ?>" method="post">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
 
-    <label>Nama Penerbit</label><br>
-    <input type="text" name="nama_penerbit" value="<?= $penerbit['nama_penerbit'] ?>" required>
-    <br><br>
+            <h3 class="mb-4 fw-bold">
+                <i class="bi bi-pencil-square me-2"></i> Edit Penerbit
+            </h3>
 
+            <form action="<?= base_url('penerbit/update/' . $penerbit['id_penerbit']) ?>" method="post">
 
+                <div class="mb-3">
+                    <label class="form-label">Nama Penerbit</label>
+                    <input type="text"
+                           name="nama_penerbit"
+                           class="form-control"
+                           value="<?= esc($penerbit['nama_penerbit']) ?>"
+                           required>
+                </div>
 
-    <button type="submit">Update</button>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        Update
+                    </button>
 
-</form>
+                    <a href="<?= base_url('penerbit') ?>" class="btn btn-secondary">
+                        Kembali
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
 
 <?= $this->endSection() ?>
