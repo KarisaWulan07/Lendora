@@ -153,7 +153,7 @@ body {
     $stats = [
         [
             'icon'  => 'bi-book',
-            'value' => 1.5809,
+            'value' => 200,
             'label' => 'Buku',
             'class' => 'blue'
         ],
@@ -165,19 +165,19 @@ body {
         ],
         [
             'icon'  => 'bi-journal-check',
-            'value' => 1.5694,
+            'value' => 103,
             'label' => 'Dipinjam',
             'class' => 'green'
         ],
         [
             'icon'  => 'bi-exclamation-triangle',
-            'value' => 625,
+            'value' => 23,
             'label' => 'Terlambat',
             'class' => 'red'
         ],
         [
             'icon'  => 'bi-cash',
-            'value' => 'Rp 300.000',
+            'value' => 'Rp 3.000',
             'label' => 'Denda',
             'class' => 'orange'
         ],
