@@ -76,22 +76,87 @@
         <i class="bi bi-journal-plus"></i> Tambah Peminjaman
     </h4>
 
+    <!-- ALERT ERROR -->
+    <?php if(session()->getFlashdata('error')) : ?>
+
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-4 mb-3"
+             role="alert">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                <div>
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+
+                    <?= session()->getFlashdata('error') ?>
+                </div>
+
+                <!-- BUTTON KE DENDA -->
+                <a href="<?= base_url('denda') ?>"
+                   class="btn btn-sm btn-danger">
+
+                    <i class="bi bi-cash-stack"></i>
+                    Bayar Denda
+
+                </a>
+
+            </div>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    <?php endif; ?>
+
+    <!-- ALERT SUCCESS -->
+    <?php if(session()->getFlashdata('success')) : ?>
+
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-4 mb-3"
+             role="alert">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <?= session()->getFlashdata('success') ?>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    <?php endif; ?>
+
     <form action="<?= base_url('peminjaman/store') ?>" method="post">
         <?= csrf_field() ?>
 
         <!-- SEARCH -->
         <div class="box mb-3 search-box">
-            <label class="form-label fw-semibold">Cari Buku</label>
-            <input type="text" id="search" class="form-control" placeholder="Cari judul buku...">
+
+            <label class="form-label fw-semibold">
+                Cari Buku
+            </label>
+
+            <input type="text"
+                   id="search"
+                   class="form-control"
+                   placeholder="Cari judul buku...">
+
         </div>
 
         <!-- LIST BUKU -->
         <div class="box mb-3">
-            <h6 class="fw-semibold mb-3">Pilih Buku</h6>
+
+            <h6 class="fw-semibold mb-3">
+                Pilih Buku
+            </h6>
 
             <div class="buku-grid" id="listBuku">
 
                 <?php foreach($buku as $b): ?>
+
                     <div class="buku-card item-buku">
 
                         <!-- COVER -->
@@ -104,15 +169,21 @@
 
                             <!-- STOK -->
                             <div class="mb-2">
+
                                 <?php if ($b['tersedia'] > 0): ?>
+
                                     <span class="badge bg-success badge-stock">
                                         Stok: <?= $b['tersedia'] ?>
                                     </span>
+
                                 <?php else: ?>
+
                                     <span class="badge bg-danger badge-stock">
                                         Habis
                                     </span>
+
                                 <?php endif; ?>
+
                             </div>
 
                             <!-- ACTION -->
@@ -120,18 +191,26 @@
 
                                 <a href="<?= base_url('buku/detail/'.$b['id_buku']) ?>"
                                    class="btn btn-sm btn-outline-primary">
+
                                     Detail
+
                                 </a>
 
                                 <?php if ($b['tersedia'] > 0): ?>
+
                                     <a href="<?= base_url('peminjaman/addCart/'.$b['id_buku']) ?>"
                                        class="btn btn-sm btn-success">
+
                                         Pinjam
+
                                     </a>
+
                                 <?php else: ?>
+
                                     <button class="btn btn-sm btn-secondary" disabled>
                                         Tidak tersedia
                                     </button>
+
                                 <?php endif; ?>
 
                             </div>
@@ -139,37 +218,55 @@
                         </div>
 
                     </div>
+
                 <?php endforeach ?>
 
             </div>
+
         </div>
 
         <!-- CART -->
         <div class="box mb-3">
-            <h6 class="fw-semibold mb-2">Buku Dipilih</h6>
+
+            <h6 class="fw-semibold mb-2">
+                Buku Dipilih
+            </h6>
 
             <div class="cart-box">
 
                 <?php if (!empty($cart)): ?>
+
                     <?php foreach($cart as $b): ?>
+
                         <div class="d-flex justify-content-between align-items-center mb-2">
 
                             <div>
+
                                 <?= $b['judul'] ?>
+
                                 <span class="badge bg-primary">
                                     <?= $b['qty'] ?>
                                 </span>
+
                             </div>
 
                             <a href="<?= base_url('peminjaman/removeCart/'.$b['id_buku']) ?>"
                                class="btn btn-sm btn-danger">
+
                                 <i class="bi bi-trash"></i>
+
                             </a>
 
                         </div>
+
                     <?php endforeach ?>
+
                 <?php else: ?>
-                    <small class="text-muted">Belum ada buku dipilih</small>
+
+                    <small class="text-muted">
+                        Belum ada buku dipilih
+                    </small>
+
                 <?php endif; ?>
 
             </div>
@@ -178,17 +275,26 @@
 
         <!-- STATUS -->
         <div class="box mb-3">
+
             <b>Status:</b>
+
             <span class="text-warning">
                 Menunggu persetujuan petugas
             </span>
+
         </div>
 
         <!-- SUBMIT -->
         <div class="text-end">
+
             <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-save"></i> Simpan Peminjaman
+
+                <i class="bi bi-save"></i>
+
+                Simpan Peminjaman
+
             </button>
+
         </div>
 
     </form>
@@ -198,13 +304,20 @@
 <!-- SEARCH SCRIPT -->
 <script>
 document.getElementById('search').addEventListener('keyup', function(){
+
     let keyword = this.value.toLowerCase();
+
     let items = document.querySelectorAll('.item-buku');
 
     items.forEach(item => {
+
         let text = item.innerText.toLowerCase();
-        item.style.display = text.includes(keyword) ? 'block' : 'none';
+
+        item.style.display = text.includes(keyword)
+            ? 'block'
+            : 'none';
     });
+
 });
 </script>
 

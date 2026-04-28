@@ -11,7 +11,7 @@
     <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/bootstrap-icons-1.13.1/bootstrap-icons.css') ?>" rel="stylesheet">
 
-    <!-- DASHBOARD CSS -->
+    <!-- CUSTOM CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/dashboard.css') ?>">
 
     <style>
@@ -36,6 +36,12 @@
             box-shadow: 5px 0 25px rgba(0,0,0,0.08);
         }
 
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            width: 100%;
+        }
+
         .sidebar a {
             display: flex;
             align-items: center;
@@ -53,13 +59,7 @@
             transform: translateX(5px);
         }
 
-        .content {
-            flex-grow: 1;
-            padding: 20px;
-            width: 100%;
-        }
-
-        /* 🔥 FIX: benar-benar hilangkan sidebar */
+        /* HIDE SIDEBAR MODE */
         .no-sidebar .sidebar {
             display: none !important;
         }
@@ -82,17 +82,14 @@
 
 <body>
 
-<?php
-    // 🔥 bikin variable aman (anti undefined)
-    $hideSidebar = $hideSidebar ?? false;
-?>
+<?php $hideSidebar = $hideSidebar ?? false; ?>
 
 <div class="wrapper <?= $hideSidebar ? 'no-sidebar' : '' ?>">
 
+    <!-- SIDEBAR -->
     <?php if (!$hideSidebar): ?>
-        <!-- SIDEBAR -->
         <aside class="sidebar">
-            <?php include(APPPATH . 'Views/layouts/menu.php'); ?>
+            <?= view('layouts/menu') ?>
         </aside>
     <?php endif; ?>
 

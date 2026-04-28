@@ -6,6 +6,7 @@ use App\Models\PeminjamanModel;
 use App\Models\DetailPeminjamanModel;
 use App\Models\BukuModel;
 use App\Models\UsersModel;
+use App\Models\DendaModel;
 
 class Peminjaman extends BaseController
 {
@@ -132,7 +133,7 @@ class Peminjaman extends BaseController
     // =====================
     // STORE (FIX FINAL)
     // =====================
-   public function store()
+  public function store()
 {
     if (session()->get('role') != 'anggota') {
         return redirect()->back();
@@ -141,12 +142,34 @@ class Peminjaman extends BaseController
     $peminjaman = new PeminjamanModel();
     $detail = new DetailPeminjamanModel();
     $bukuModel = new BukuModel();
+
+    // 🔥 TAMBAHAN
+    $dendaModel = new DendaModel();
+
     $db = \Config\Database::connect();
 
     $cart = session()->get('cart') ?? [];
 
     if (empty($cart)) {
         return redirect()->back()->with('error', 'Pilih buku dulu!');
+    }
+
+    // ==========================
+    // 🔥 CEK DENDA BELUM LUNAS
+    // ==========================
+    $cekDenda = $dendaModel
+        ->join('pengembalian', 'pengembalian.id_pengembalian = denda.id_pengembalian')
+        ->join('peminjaman', 'peminjaman.id_peminjaman = pengembalian.id_peminjaman')
+        ->where('peminjaman.id_anggota', session()->get('id'))
+        ->whereIn('denda.status_denda', ['belum', 'menunggu'])
+        ->first();
+
+    if ($cekDenda) {
+
+        return redirect()->back()->with(
+            'error',
+            'Harap lunasi denda terlebih dahulu sebelum meminjam buku.'
+        );
     }
 
     // ==========================
@@ -172,8 +195,13 @@ class Peminjaman extends BaseController
     $id = $peminjaman->getInsertID();
 
     if (!$id) {
+
         $db->transRollback();
-        return redirect()->back()->with('error', 'Gagal simpan peminjaman');
+
+        return redirect()->back()->with(
+            'error',
+            'Gagal simpan peminjaman'
+        );
     }
 
     foreach ($cart as $id_buku => $qty) {
@@ -182,10 +210,17 @@ class Peminjaman extends BaseController
 
         if (!$b) continue;
 
+        // ==========================
         // CEK STOK
+        // ==========================
         if ($b['tersedia'] < $qty) {
+
             $db->transRollback();
-            return redirect()->back()->with('error', 'Stok buku tidak cukup');
+
+            return redirect()->back()->with(
+                'error',
+                'Stok buku tidak cukup'
+            );
         }
 
         $detail->insert([
@@ -202,7 +237,11 @@ class Peminjaman extends BaseController
     $db->transComplete();
 
     if ($db->transStatus() === false) {
-        return redirect()->back()->with('error', 'Transaksi gagal');
+
+        return redirect()->back()->with(
+            'error',
+            'Transaksi gagal'
+        );
     }
 
     session()->remove('cart');

@@ -267,16 +267,7 @@
                                     <i class="bi bi-lock"></i>
                                 </span>
                                 <input type="password" name="password" class="form-control" placeholder="Password" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <select name="role" class="form-select" required>
-                                    <option value="">-- Pilih Role --</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="petugas">Petugas</option>
-                                    <option value="anggota">Anggota</option>
-                                </select>
-                            </div>
+                        </div>
 
                             <div class="mb-3">
                                 <input type="file" name="foto" class="form-control" accept="image/*">

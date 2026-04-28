@@ -73,6 +73,10 @@
                     <th>Peminjaman</th>
                     <th>Nama</th>
                     <th>Jumlah</th>
+
+                    <!-- 🔥 TAMBAHAN -->
+                    <th>Keterangan</th>
+
                     <th>Status</th>
                     <th>Metode</th>
                     <th>Bukti</th>
@@ -92,8 +96,11 @@
                         ?>
 
                         <tr>
+
                             <td><?= $d['id_denda'] ?></td>
+
                             <td><?= $d['id_peminjaman'] ?? '-' ?></td>
+
                             <td><?= $d['nama_anggota'] ?? '-' ?></td>
 
                             <td>
@@ -106,64 +113,114 @@
                                 <?php endif; ?>
                             </td>
 
+                            <!-- 🔥 KETERANGAN DENDA -->
+                            <td>
+                                <?php if (!empty($d['keterangan'])): ?>
+
+                                    <span class="badge bg-danger">
+                                        <?= $d['keterangan'] ?>
+                                    </span>
+
+                                <?php else: ?>
+
+                                    <span class="text-muted">
+                                        -
+                                    </span>
+
+                                <?php endif; ?>
+                            </td>
+
                             <td>
                                 <?php if ($status == 'belum'): ?>
                                     <span class="badge bg-danger">Belum Bayar</span>
+
                                 <?php elseif ($status == 'menunggu'): ?>
                                     <span class="badge bg-warning text-dark">Menunggu</span>
+
                                 <?php elseif ($status == 'lunas'): ?>
                                     <span class="badge bg-success">Lunas</span>
+
                                 <?php elseif ($status == 'ditolak'): ?>
                                     <span class="badge bg-danger">Ditolak</span>
                                 <?php endif; ?>
                             </td>
 
-                            <td><?= $d['metode_pembayaran'] ?? '-' ?></td>
+                            <td>
+                                <?= $d['metode_pembayaran'] ?? '-' ?>
+                            </td>
 
                             <td>
+
                                 <?php if (!empty($d['bukti_pembayaran'])): ?>
+
                                     <a href="<?= base_url('uploads/bukti/' . $d['bukti_pembayaran']) ?>"
                                        target="_blank"
                                        class="btn btn-sm btn-outline-primary">
+
                                         Lihat
+
                                     </a>
+
                                 <?php else: ?>
+
                                     <span class="text-muted">-</span>
+
                                 <?php endif; ?>
+
                             </td>
 
-                            <td><?= $d['nama_petugas'] ?? '-' ?></td>
+                            <td>
+                                <?= $d['nama_petugas'] ?? '-' ?>
+                            </td>
 
                             <td class="d-flex flex-wrap gap-1">
 
                                 <?php if ($status == 'belum'): ?>
+
                                     <?php if ($role == 'anggota'): ?>
+
                                         <a href="<?= base_url('denda/bayar/'.$d['id_denda']) ?>"
                                            class="btn btn-sm btn-success">
+
                                             Bayar
+
                                         </a>
+
                                     <?php endif; ?>
 
                                 <?php elseif ($status == 'menunggu'): ?>
+
                                     <?php if (in_array($role, ['admin','petugas'])): ?>
+
                                         <a href="<?= base_url('denda/verifikasi/'.$d['id_denda']) ?>"
                                            class="btn btn-sm btn-success">
+
                                             ✔ Verifikasi
+
                                         </a>
 
                                         <a href="<?= base_url('denda/tolak/'.$d['id_denda']) ?>"
                                            class="btn btn-sm btn-danger">
+
                                             ✖ Tolak
+
                                         </a>
+
                                     <?php endif; ?>
 
                                 <?php elseif ($status == 'ditolak'): ?>
+
                                     <?php if ($role == 'anggota'): ?>
+
                                         <a href="<?= base_url('denda/bayar/'.$d['id_denda']) ?>"
                                            class="btn btn-sm btn-warning">
+
                                             Bayar Ulang
+
                                         </a>
+
                                     <?php endif; ?>
+
                                 <?php endif; ?>
 
                             </td>
@@ -171,12 +228,15 @@
                         </tr>
 
                     <?php endforeach; ?>
+
                 <?php else: ?>
+
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
+                        <td colspan="10" class="text-center text-muted py-4">
                             Tidak ada data denda
                         </td>
                     </tr>
+
                 <?php endif; ?>
 
                 </tbody>

@@ -242,5 +242,15 @@ public function edit($id = null)
 
         return redirect()->to($url);
     }
+    // ================= WA =================
+    public function profile()
+{
+    $model = new \App\Models\UsersModel();
 
+    $id = session()->get('id');
+
+    $data['user'] = $model->find($id);
+
+    return view('users/profile', $data);
+}
 }

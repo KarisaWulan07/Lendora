@@ -16,7 +16,7 @@ class Denda extends BaseController
     // =====================
     // LIST DENDA
     // =====================
-  public function index()
+ public function index()
 {
     $model = new DendaModel();
 
@@ -26,11 +26,12 @@ class Denda extends BaseController
 
     $builder = $model
         ->select('
-            denda.*,
-            peminjaman.id_peminjaman,
-            users.nama as nama_anggota,
-            petugas.nama as nama_petugas
-        ')
+    denda.*,
+    peminjaman.id_peminjaman,
+    users.nama as nama_anggota,
+    petugas.nama as nama_petugas,
+    denda.keterangan
+')
         ->join('pengembalian', 'pengembalian.id_pengembalian = denda.id_pengembalian', 'left')
         ->join('peminjaman', 'peminjaman.id_peminjaman = pengembalian.id_peminjaman', 'left')
 
@@ -51,9 +52,14 @@ class Denda extends BaseController
     // SEARCH
     // =====================
     if ($search) {
+
         $builder->groupStart()
             ->like('users.nama', $search)
             ->orLike('peminjaman.id_peminjaman', $search)
+
+            // 🔥 TAMBAHAN SEARCH KETERANGAN
+            ->orLike('denda.keterangan', $search)
+
             ->groupEnd();
     }
 

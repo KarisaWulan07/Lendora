@@ -58,80 +58,152 @@ class Pengembalian extends BaseController
         return view('pengembalian/create', $data);
     }
 
-    public function store()
-    {
-        $pengembalian = new PengembalianModel();
-        $peminjaman   = new PeminjamanModel();
-        $detail       = new DetailPeminjamanModel();
-        $buku         = new BukuModel();
-        $dendaModel   = new DendaModel();
+   public function store()
+{
+    $pengembalian = new PengembalianModel();
+    $peminjaman   = new PeminjamanModel();
+    $detail       = new DetailPeminjamanModel();
+    $buku         = new BukuModel();
+    $dendaModel   = new DendaModel();
 
-        $id_peminjaman = $this->request->getPost('id_peminjaman');
+    $id_peminjaman = $this->request->getPost('id_peminjaman');
 
-        if (!$id_peminjaman) {
-            return redirect()->back()->with('error', 'Peminjaman tidak dipilih');
-        }
+    if (!$id_peminjaman) {
+        return redirect()->back()->with('error', 'Peminjaman tidak dipilih');
+    }
 
-        $pinjam = $peminjaman->find($id_peminjaman);
+    $pinjam = $peminjaman->find($id_peminjaman);
 
-        if (!$pinjam) {
-            return redirect()->back()->with('error', 'Data peminjaman tidak ditemukan');
-        }
+    if (!$pinjam) {
+        return redirect()->back()->with('error', 'Data peminjaman tidak ditemukan');
+    }
 
-        $today = date('Y-m-d');
+    $today = date('Y-m-d');
 
-        // 🔥 HITUNG DENDA
-        $denda = 0;
-        if ($today > $pinjam['tanggal_kembali']) {
-            $selisih = (strtotime($today) - strtotime($pinjam['tanggal_kembali'])) / 86400;
-            $denda = $selisih * 1000;
-        }
+    // =========================
+    // KONDISI BUKU
+    // =========================
+    $kondisi_buku = $this->request->getPost('kondisi_buku');
 
-        // 🔥 SIMPAN PENGEMBALIAN
-        $insert = $pengembalian->insert([
-            'id_peminjaman' => $id_peminjaman,
-            'tanggal_dikembalikan' => $today,
-            'denda' => $denda
-        ]);
+    // =========================
+    // HITUNG DENDA TERLAMBAT
+    // =========================
+    $denda = 0;
 
-        if (!$insert) {
-            return redirect()->back()->with('error', json_encode($pengembalian->errors()));
-        }
+    if ($today > $pinjam['tanggal_kembali']) {
 
-        $id_pengembalian = $pengembalian->getInsertID();
+        $selisih = (strtotime($today) - strtotime($pinjam['tanggal_kembali'])) / 86400;
 
-        // 🔥 SIMPAN DENDA
-        if ($denda > 0) {
-            $dendaModel->insert([
-                'id_pengembalian' => $id_pengembalian,
-                'jumlah_denda' => $denda,
-                'status_denda' => 'belum',
-                'metode_pembayaran' => null
-            ]);
-        }
+        $denda = $selisih * 1000;
+    }
 
-        // 🔥 UPDATE STATUS PEMINJAMAN
-        $peminjaman->update($id_peminjaman, [
-            'status' => 'dikembalikan'
-        ]);
+    // =========================
+    // DENDA TAMBAHAN
+    // =========================
+    $denda_rusak = 0;
+    $denda_hilang = 0;
 
-        // 🔥 KEMBALIKAN STOK BUKU
-        $list = $detail->where('id_peminjaman', $id_peminjaman)->findAll();
+    if ($kondisi_buku == 'rusak') {
+        $denda_rusak = 50000;
+    }
 
-        foreach ($list as $d) {
-            $b = $buku->find($d['id_buku']);
+    if ($kondisi_buku == 'hilang') {
+        $denda_hilang = 100000;
+    }
 
-            if ($b) {
+    // =========================
+// TOTAL DENDA
+// =========================
+$total_denda = $denda + $denda_rusak + $denda_hilang;
+
+// =========================
+// KETERANGAN DENDA
+// =========================
+$keterangan = [];
+
+if ($denda > 0) {
+
+    $hari = $denda / 1000;
+
+    $keterangan[] = 'Terlambat ' . $hari . ' hari';
+}
+
+if ($kondisi_buku == 'rusak') {
+    $keterangan[] = 'Buku rusak';
+}
+
+if ($kondisi_buku == 'hilang') {
+    $keterangan[] = 'Buku hilang';
+}
+
+$keterangan_text = implode(' + ', $keterangan);
+
+// =========================
+// SIMPAN PENGEMBALIAN
+// =========================
+$insert = $pengembalian->insert([
+    'id_peminjaman'       => $id_peminjaman,
+    'tanggal_dikembalikan'=> $today,
+    'denda'               => $total_denda,
+    'kondisi_buku'        => $kondisi_buku
+]);
+
+if (!$insert) {
+    return redirect()->back()->with('error', json_encode($pengembalian->errors()));
+}
+
+$id_pengembalian = $pengembalian->getInsertID();
+
+// =========================
+// SIMPAN DENDA
+// =========================
+if ($total_denda > 0) {
+
+    $dendaModel->insert([
+        'id_pengembalian'   => $id_pengembalian,
+        'jumlah_denda'      => $total_denda,
+        'denda_rusak'       => $denda_rusak,
+        'denda_hilang'      => $denda_hilang,
+
+        // 🔥 TAMBAHAN
+        'keterangan'        => $keterangan_text,
+
+        'status_denda'      => 'belum',
+        'metode_pembayaran' => null
+    ]);
+}
+
+    // =========================
+    // UPDATE STATUS PEMINJAMAN
+    // =========================
+    $peminjaman->update($id_peminjaman, [
+        'status' => 'dikembalikan'
+    ]);
+
+    // =========================
+    // KEMBALIKAN STOK BUKU
+    // =========================
+    $list = $detail->where('id_peminjaman', $id_peminjaman)->findAll();
+
+    foreach ($list as $d) {
+
+        $b = $buku->find($d['id_buku']);
+
+        if ($b) {
+
+            // jika buku hilang stok tidak kembali
+            if ($kondisi_buku != 'hilang') {
+
                 $buku->update($d['id_buku'], [
                     'tersedia' => $b['tersedia'] + $d['jumlah']
                 ]);
             }
         }
-
-        return redirect()->to(base_url('pengembalian'))
-            ->with('success', 'Berhasil dikembalikan');
     }
 
+    return redirect()->to(base_url('pengembalian'))
+        ->with('success', 'Berhasil dikembalikan');
+}
     public function delete($id)
     {
         $pengembalian = new PengembalianModel();

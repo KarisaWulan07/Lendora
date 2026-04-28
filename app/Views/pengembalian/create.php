@@ -39,7 +39,7 @@
 
         <form action="<?= base_url('pengembalian/store') ?>" method="post">
 
-            <!-- 🔥 FIX: dari datalist → select (biar pasti terkirim) -->
+            <!-- PILIH PEMINJAMAN -->
             <div class="mb-3">
                 <label class="label">Peminjaman</label>
 
@@ -65,7 +65,22 @@
                        readonly>
             </div>
 
-            <!-- DENDA (opsional display saja, tidak dipakai POST) -->
+            <!-- KONDISI BUKU -->
+            <div class="mb-3">
+                <label class="label">Kondisi Buku</label>
+
+                <select name="kondisi_buku" class="form-select" required>
+                    <option value="normal">Normal</option>
+                    <option value="rusak">Rusak</option>
+                    <option value="hilang">Hilang</option>
+                </select>
+
+                <small class="text-muted">
+                    *Pilih kondisi buku saat dikembalikan
+                </small>
+            </div>
+
+            <!-- DENDA -->
             <div class="mb-3">
                 <label class="label">Denda</label>
 
@@ -75,11 +90,15 @@
                        readonly>
 
                 <small class="text-muted">
-                    *Denda dihitung otomatis oleh sistem
+                    *Denda keterlambatan Rp1.000 / hari
+                    <br>
+                    *Rusak +Rp50.000
+                    <br>
+                    *Hilang +Rp100.000
                 </small>
             </div>
 
-            <!-- METODE PEMBAYARAN (boleh tetap ada) -->
+            <!-- METODE PEMBAYARAN -->
             <div class="mb-3">
                 <label class="label">Metode Pembayaran</label>
 
